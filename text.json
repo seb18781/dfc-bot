@@ -1,0 +1,8 @@
+{
+    "BOT_VERSION": "bot version: ",
+    "UTXO_BALANCE": "utxo balance: ",
+    "TOKEN_BALANCE": "token balance: ",
+    "ADDRESS": "address: ",
+    "UTXO_TO_ACCOUNT":"utxo to account: "
+
+}
