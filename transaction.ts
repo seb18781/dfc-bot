@@ -3,6 +3,7 @@ import { AddressToken } from '@defichain/whale-api-client/dist/api/address'
 import { WhaleWalletAccount } from '@defichain/whale-api-wallet'
 import { BigNumber } from 'bignumber.js'
 import { CTransactionSegWit } from '@defichain/jellyfish-transaction'
+import { TokenData } from '@defichain/whale-api-client/dist/api/tokens'
 
 export class Transaction {
     private wallet: JellyfishWallet<WhaleWalletAccount, WalletHdNode>
@@ -37,7 +38,7 @@ export class Transaction {
     }
 
     /**
-     * 
+     * Convert token from UTXO model to account model
      * @param amount Amount of native token 
      * @param minBalance minimum of native which should be left as UTXO balance
      * @returns Transaction ID
@@ -67,6 +68,12 @@ export class Transaction {
         return txid
     }
 
+    /**
+     * Convert token from account model to UTXO model
+     * @param amount Amount of token to be swapped to utxo
+     * @param minBalance Minimum token balance which should be kept in account
+     * @returns transaction id
+     */
     public async accountToUTXO(amount: BigNumber, minBalance: BigNumber): Promise<string | undefined>{
       const accountBalance: BigNumber = await this.getTokenBalance('DFI',new BigNumber(0))
       if (accountBalance.lt(amount)){
@@ -86,5 +93,45 @@ export class Transaction {
       script)
       const txid: string = await this.wallet.get(0).client.rawtx.send({hex: new CTransactionSegWit(txn).toHex()})
       return txid 
+    }
+    public async swapToken(fromTokenSymbol: string, fromAmount: BigNumber, toTokenSymbol: string,
+      maxPrice: BigNumber = new BigNumber(999999999)): Promise<string | undefined>{
+        const fromTokenBalance: BigNumber = await this.getTokenBalance(fromTokenSymbol,new BigNumber(0))
+        if (fromAmount.gt(fromTokenBalance)){
+          return undefined
+        }
+        const fromTokenID = await this.getTokenID(fromTokenSymbol)
+        const toTokenID = await this.getTokenID(toTokenSymbol)
+        if(fromTokenID === undefined || toTokenID === undefined){
+          return undefined
+        }
+        const script  = await this.wallet.get(0).getScript()
+        const txn = await this.wallet.get(0).withTransactionBuilder().dex.poolSwap({
+          fromScript: script,
+          toScript: script,
+          fromTokenId: fromTokenID,
+          toTokenId: toTokenID,
+          fromAmount: fromAmount,
+          maxPrice: new BigNumber('9223372036854775807')
+        },
+        script)
+        const txid: string = await this.wallet.get(0).client.rawtx.send({hex: new CTransactionSegWit(txn).toHex()})
+        return txid
+    }
+
+    public async getTokenID(symbol:string): Promise<number | undefined>
+    {
+      let id = undefined
+      let tokenList = await this.wallet.get(0).client.tokens.list(400)
+      for (const item of tokenList) {
+        console.log(item)
+      }
+      //const token = tokenList.find(tokenData => {return tokenData.symbol === 'ETH'})
+      //if (token === undefined){
+        return undefined
+      //}
+      //else{
+      //  return Number(token.id)
+      //}
     }
 }

@@ -73,9 +73,10 @@ class Bot {
     }
     async run() {
         console.log(Helper.getISODate() + ' ' + text_json_1.default.UTXO_BALANCE + await this.transaction.getUTXOBalance()); //Output UTXO balance
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + await this.transaction.getTokenBalance('ETH', new bignumber_js_1.BigNumber(0))); //Output token balance
+        console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + await this.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0))); //Output token balance
         //console.log(Helper.getISODate() + ' ' + Text.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new BigNumber(500),new BigNumber(0.1))) //UTXO to Account
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.ACCOUNT_TO_UTXO + await this.transaction.accountToUTXO(new bignumber_js_1.BigNumber(500), new bignumber_js_1.BigNumber(0))); //ACCOUNT to UTXO
+        //console.log(Helper.getISODate() + ' ' + Text.ACCOUNT_TO_UTXO + await this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))) //ACCOUNT to UTXO
+        console.log(Helper.getISODate() + ' ' + text_json_1.default.SWAP + await this.transaction.swapToken('DFI', (0, bignumber_js_1.BigNumber)(500), 'EUROC')); //Swap DFI to EUROC
     }
 }
 exports.Bot = Bot;

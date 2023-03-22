@@ -4,6 +4,7 @@
     "TOKEN_BALANCE": "token balance: ",
     "ADDRESS": "address: ",
     "UTXO_TO_ACCOUNT":"utxo to account: ",
-    "ACCOUNT_TO_UTXO":"account to utxo: "
+    "ACCOUNT_TO_UTXO":"account to utxo: ",
+    "SWAP":"swap: "
 
 }
