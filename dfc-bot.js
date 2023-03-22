@@ -30,7 +30,8 @@ exports.Bot = exports.bip32Options = exports.main = void 0;
 const Helper = __importStar(require("./helper"));
 const text_json_1 = __importDefault(require("./text.json"));
 const parameter_json_1 = __importDefault(require("./parameter.json"));
-const mnemonic_json_1 = __importDefault(require("c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json"));
+//import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
+const mnemonic_json_1 = __importDefault(require("C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json"));
 const jellyfish_network_1 = require("@defichain/jellyfish-network");
 const whale_api_client_1 = require("@defichain/whale-api-client");
 const jellyfish_wallet_1 = require("@defichain/jellyfish-wallet");
@@ -72,8 +73,9 @@ class Bot {
     }
     async run() {
         console.log(Helper.getISODate() + ' ' + text_json_1.default.UTXO_BALANCE + await this.transaction.getUTXOBalance()); //Output UTXO balance
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + await this.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0))); //Output token balance
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new bignumber_js_1.BigNumber(500), new bignumber_js_1.BigNumber(0.1))); //UTXO to Account
+        console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + await this.transaction.getTokenBalance('ETH', new bignumber_js_1.BigNumber(0))); //Output token balance
+        //console.log(Helper.getISODate() + ' ' + Text.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new BigNumber(500),new BigNumber(0.1))) //UTXO to Account
+        console.log(Helper.getISODate() + ' ' + text_json_1.default.ACCOUNT_TO_UTXO + await this.transaction.accountToUTXO(new bignumber_js_1.BigNumber(500), new bignumber_js_1.BigNumber(0))); //ACCOUNT to UTXO
     }
 }
 exports.Bot = Bot;

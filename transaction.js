@@ -24,14 +24,23 @@ class Transaction {
     async getTokenBalance(symbol, minBalance) {
         const address = await this.wallet.get(0).getAddress();
         const tokenList = await this.wallet.get(0).client.address.listToken(address);
-        return tokenList.find((token) => {
-            return token.isDAT && token.symbol === symbol && new bignumber_js_1.BigNumber(token.amount).gte(minBalance);
-        });
+        const token = tokenList.find((token) => { return token.isDAT && token.symbol === symbol && new bignumber_js_1.BigNumber(token.amount).gte(minBalance); });
+        if (token === undefined) {
+            return undefined;
+        }
+        else {
+            return new bignumber_js_1.BigNumber(token.amount);
+        }
     }
+    /**
+     *
+     * @param amount Amount of native token
+     * @param minBalance minimum of native which should be left as UTXO balance
+     * @returns Transaction ID
+     */
     async utxoToAccount(amount, minBalance) {
         const saveHeaven = new bignumber_js_1.BigNumber(0.1);
         const utxoBalance = await this.getUTXOBalance();
-        await console.log(utxoBalance);
         if (utxoBalance.lte(minBalance) || utxoBalance.lte(saveHeaven) || utxoBalance.lte(amount)) {
             return undefined;
         }
@@ -49,7 +58,26 @@ class Transaction {
                 },
             ],
         }, script);
-        let txid = await this.wallet.get(0).client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
+        const txid = await this.wallet.get(0).client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
+        return txid;
+    }
+    async accountToUTXO(amount, minBalance) {
+        const accountBalance = await this.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0));
+        if (accountBalance.lt(amount)) {
+            return undefined;
+        }
+        const script = await this.wallet.get(0).getScript();
+        const txn = await this.wallet.get(0).withTransactionBuilder().account.accountToUtxos({
+            from: script,
+            balances: [
+                {
+                    token: 0,
+                    amount: amount
+                }
+            ],
+            mintingOutputsStart: 2 // 0: DfTx, 1: change, 2: minted utxos (mandated by jellyfish SDK)
+        }, script);
+        const txid = await this.wallet.get(0).client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
         return txid;
     }
 }

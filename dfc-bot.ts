@@ -1,7 +1,8 @@
 import * as Helper from './helper'
 import Text from './text.json'
 import Parameter from './parameter.json'
-import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
+//import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
+import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
 import { MainNet, Network, TestNet } from '@defichain/jellyfish-network'
 import { WhaleApiClient } from '@defichain/whale-api-client'
 import { JellyfishWallet, WalletHdNode } from '@defichain/jellyfish-wallet'
@@ -53,7 +54,8 @@ export class Bot{
 
   async run():Promise<void> {
     console.log(Helper.getISODate() + ' ' + Text.UTXO_BALANCE + await this.transaction.getUTXOBalance()) //Output UTXO balance
-    console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + await this.transaction.getTokenBalance('DFI',new BigNumber(0))) //Output token balance
-    console.log(Helper.getISODate() + ' ' + Text.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new BigNumber(500),new BigNumber(0.1))) //UTXO to Account
+    console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + await this.transaction.getTokenBalance('ETH',new BigNumber(0))) //Output token balance
+    //console.log(Helper.getISODate() + ' ' + Text.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new BigNumber(500),new BigNumber(0.1))) //UTXO to Account
+    console.log(Helper.getISODate() + ' ' + Text.ACCOUNT_TO_UTXO + await this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))) //ACCOUNT to UTXO
   }
 }
