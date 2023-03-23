@@ -38,7 +38,6 @@ const jellyfish_wallet_1 = require("@defichain/jellyfish-wallet");
 const jellyfish_wallet_mnemonic_1 = require("@defichain/jellyfish-wallet-mnemonic");
 const whale_api_wallet_1 = require("@defichain/whale-api-wallet");
 const transaction_1 = require("./transaction");
-const bignumber_js_1 = require("bignumber.js");
 if (require.main === module) {
     main();
 }
@@ -72,11 +71,12 @@ class Bot {
         this.transaction = new transaction_1.Transaction(wallet);
     }
     async run() {
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.UTXO_BALANCE + await this.transaction.getUTXOBalance()); //Output UTXO balance
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + await this.transaction.getTokenBalance('EUROC', new bignumber_js_1.BigNumber(0))); //Output token balance
+        //console.log(Helper.getISODate() + ' ' + Text.UTXO_BALANCE + await this.transaction.getUTXOBalance()) //Output UTXO balance
+        //console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + await this.transaction.getTokenBalance('DFI',new BigNumber(0))) //Output token balance
         //console.log(Helper.getISODate() + ' ' + Text.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new BigNumber(500),new BigNumber(0.1))) //UTXO to Account
         //console.log(Helper.getISODate() + ' ' + Text.ACCOUNT_TO_UTXO + await this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))) //ACCOUNT to UTXO
         //console.log(Helper.getISODate() + ' ' + Text.SWAP + await this.transaction.swapToken('DFI',new BigNumber(229.65380233),'EUROC')) //Swap DFI to EUROC
+        //console.log(Helper.getISODate() + ' ' + Text.ADD_LIQUIDITY + await this.transaction.addPoolLiquidity('DFI',new BigNumber(100),'EUROC',new BigNumber(100))) //Add liquidity to pool DFI-EUROC
     }
 }
 exports.Bot = Bot;

@@ -5,6 +5,7 @@
     "ADDRESS": "address: ",
     "UTXO_TO_ACCOUNT":"utxo to account: ",
     "ACCOUNT_TO_UTXO":"account to utxo: ",
-    "SWAP":"swap: "
+    "SWAP":"swap: ",
+    "ADD_LIQUIDITY": "add liquidity to pool: "
 
 }

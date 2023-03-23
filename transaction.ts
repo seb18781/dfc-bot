@@ -100,7 +100,7 @@ export class Transaction {
    * Convert token from account model to UTXO model
    * @param amount Amount of token to be swapped to utxo
    * @param minBalance Minimum token balance which should be kept in account
-   * @returns transaction id
+   * @returns Transaction ID
    */
   public async accountToUTXO(
     amount: BigNumber,
@@ -135,6 +135,15 @@ export class Transaction {
       .client.rawtx.send({ hex: new CTransactionSegWit(txn).toHex() });
     return txid;
   }
+
+  /**
+   * Swap token A to token B
+   * @param fromTokenSymbol Token A
+   * @param fromAmount Amount of Token A
+   * @param toTokenSymbol  Token B
+   * @param maxPrice Maximum Price of Token A
+   * @returns Transaction ID
+   */
   public async swapToken(
     fromTokenSymbol: string,
     fromAmount: BigNumber,
@@ -172,6 +181,35 @@ export class Transaction {
     const txid: string = await this.wallet
       .get(0)
       .client.rawtx.send({ hex: new CTransactionSegWit(txn).toHex() });
+    return txid;
+  }
+
+  public async addPoolLiquidity(A_Symbol: string,A_Amount: BigNumber,B_Symbol: string,B_Amount: BigNumber): Promise<string | undefined>{
+    const A_ID = await this.getTokenID(A_Symbol);
+    const B_ID = await this.getTokenID(B_Symbol);
+    if (A_ID === undefined || B_ID === undefined) {
+      return undefined;
+    }
+    const A_Balance: BigNumber = await this.getTokenBalance(A_Symbol,new BigNumber(0));
+    const B_Balance: BigNumber = await this.getTokenBalance(B_Symbol,new BigNumber(0));
+    if (A_Balance.lt(A_Amount) || B_Balance.lt(B_Amount)) {
+      return undefined;
+    }
+    const script = await this.wallet.get(0).getScript();
+    const txn = await this.wallet
+      .get(0)
+      .withTransactionBuilder()
+      .liqPool.addLiquidity(
+        {
+          from: [{script: script,
+            balances: [{token: A_ID, amount: A_Amount},{token: B_ID, amount: B_Amount}]}],
+          shareAddress: script
+        },
+        script
+      )
+    const txid: string = await this.wallet
+    .get(0)
+    .client.rawtx.send({ hex: new CTransactionSegWit(txn).toHex() });
     return txid;
   }
 

@@ -53,10 +53,11 @@ export class Bot{
   }
 
   async run():Promise<void> {
-    console.log(Helper.getISODate() + ' ' + Text.UTXO_BALANCE + await this.transaction.getUTXOBalance()) //Output UTXO balance
-    console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + await this.transaction.getTokenBalance('DFI',new BigNumber(0))) //Output token balance
+    //console.log(Helper.getISODate() + ' ' + Text.UTXO_BALANCE + await this.transaction.getUTXOBalance()) //Output UTXO balance
+    //console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + await this.transaction.getTokenBalance('DFI',new BigNumber(0))) //Output token balance
     //console.log(Helper.getISODate() + ' ' + Text.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new BigNumber(500),new BigNumber(0.1))) //UTXO to Account
     //console.log(Helper.getISODate() + ' ' + Text.ACCOUNT_TO_UTXO + await this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))) //ACCOUNT to UTXO
     //console.log(Helper.getISODate() + ' ' + Text.SWAP + await this.transaction.swapToken('DFI',new BigNumber(229.65380233),'EUROC')) //Swap DFI to EUROC
+    //console.log(Helper.getISODate() + ' ' + Text.ADD_LIQUIDITY + await this.transaction.addPoolLiquidity('DFI',new BigNumber(100),'EUROC',new BigNumber(100))) //Add liquidity to pool DFI-EUROC
   }
 }

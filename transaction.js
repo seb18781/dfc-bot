@@ -78,7 +78,7 @@ class Transaction {
      * Convert token from account model to UTXO model
      * @param amount Amount of token to be swapped to utxo
      * @param minBalance Minimum token balance which should be kept in account
-     * @returns transaction id
+     * @returns Transaction ID
      */
     async accountToUTXO(amount, minBalance) {
         const accountBalance = await this.getTokenBalance("DFI", new bignumber_js_1.BigNumber(0));
@@ -104,6 +104,14 @@ class Transaction {
             .client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
         return txid;
     }
+    /**
+     * Swap token A to token B
+     * @param fromTokenSymbol Token A
+     * @param fromAmount Amount of Token A
+     * @param toTokenSymbol  Token B
+     * @param maxPrice Maximum Price of Token A
+     * @returns Transaction ID
+     */
     async swapToken(fromTokenSymbol, fromAmount, toTokenSymbol, maxPrice = new bignumber_js_1.BigNumber(999999999)) {
         const fromTokenBalance = await this.getTokenBalance(fromTokenSymbol, new bignumber_js_1.BigNumber(0));
         if (fromAmount.gt(fromTokenBalance)) {
@@ -126,6 +134,31 @@ class Transaction {
             toScript: script,
             toTokenId: toTokenID,
             maxPrice: maxPrice,
+        }, script);
+        const txid = await this.wallet
+            .get(0)
+            .client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
+        return txid;
+    }
+    async addPoolLiquidity(A_Symbol, A_Amount, B_Symbol, B_Amount) {
+        const A_ID = await this.getTokenID(A_Symbol);
+        const B_ID = await this.getTokenID(B_Symbol);
+        if (A_ID === undefined || B_ID === undefined) {
+            return undefined;
+        }
+        const A_Balance = await this.getTokenBalance(A_Symbol, new bignumber_js_1.BigNumber(0));
+        const B_Balance = await this.getTokenBalance(B_Symbol, new bignumber_js_1.BigNumber(0));
+        if (A_Balance.lt(A_Amount) || B_Balance.lt(B_Amount)) {
+            return undefined;
+        }
+        const script = await this.wallet.get(0).getScript();
+        const txn = await this.wallet
+            .get(0)
+            .withTransactionBuilder()
+            .liqPool.addLiquidity({
+            from: [{ script: script,
+                    balances: [{ token: A_ID, amount: A_Amount }, { token: B_ID, amount: B_Amount }] }],
+            shareAddress: script
         }, script);
         const txid = await this.wallet
             .get(0)
