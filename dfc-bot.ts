@@ -57,6 +57,6 @@ export class Bot{
     console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + await this.transaction.getTokenBalance('DFI',new BigNumber(0))) //Output token balance
     //console.log(Helper.getISODate() + ' ' + Text.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new BigNumber(500),new BigNumber(0.1))) //UTXO to Account
     //console.log(Helper.getISODate() + ' ' + Text.ACCOUNT_TO_UTXO + await this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))) //ACCOUNT to UTXO
-    console.log(Helper.getISODate() + ' ' + Text.SWAP + await this.transaction.swapToken('DFI',BigNumber(500),'EUROC')) //Swap DFI to EUROC
+    //console.log(Helper.getISODate() + ' ' + Text.SWAP + await this.transaction.swapToken('DFI',new BigNumber(229.65380233),'EUROC')) //Swap DFI to EUROC
   }
 }

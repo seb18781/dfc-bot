@@ -23,8 +23,14 @@ class Transaction {
      */
     async getTokenBalance(symbol, minBalance) {
         const address = await this.wallet.get(0).getAddress();
-        const tokenList = await this.wallet.get(0).client.address.listToken(address);
-        const token = tokenList.find((token) => { return token.isDAT && token.symbol === symbol && new bignumber_js_1.BigNumber(token.amount).gte(minBalance); });
+        const tokenList = await this.wallet
+            .get(0)
+            .client.address.listToken(address);
+        const token = tokenList.find((token) => {
+            return (token.isDAT &&
+                token.symbol === symbol &&
+                new bignumber_js_1.BigNumber(token.amount).gte(minBalance));
+        });
         if (token === undefined) {
             return undefined;
         }
@@ -41,11 +47,16 @@ class Transaction {
     async utxoToAccount(amount, minBalance) {
         const saveHeaven = new bignumber_js_1.BigNumber(0.1);
         const utxoBalance = await this.getUTXOBalance();
-        if (utxoBalance.lte(minBalance) || utxoBalance.lte(saveHeaven) || utxoBalance.lte(amount)) {
+        if (utxoBalance.lte(minBalance) ||
+            utxoBalance.lte(saveHeaven) ||
+            utxoBalance.lte(amount)) {
             return undefined;
         }
         const script = await this.wallet.get(0).getScript();
-        const txn = await this.wallet.get(0).withTransactionBuilder().account.utxosToAccount({
+        const txn = await this.wallet
+            .get(0)
+            .withTransactionBuilder()
+            .account.utxosToAccount({
             to: [
                 {
                     script,
@@ -58,7 +69,9 @@ class Transaction {
                 },
             ],
         }, script);
-        const txid = await this.wallet.get(0).client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
+        const txid = await this.wallet
+            .get(0)
+            .client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
         return txid;
     }
     /**
@@ -68,22 +81,27 @@ class Transaction {
      * @returns transaction id
      */
     async accountToUTXO(amount, minBalance) {
-        const accountBalance = await this.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0));
+        const accountBalance = await this.getTokenBalance("DFI", new bignumber_js_1.BigNumber(0));
         if (accountBalance.lt(amount)) {
             return undefined;
         }
         const script = await this.wallet.get(0).getScript();
-        const txn = await this.wallet.get(0).withTransactionBuilder().account.accountToUtxos({
+        const txn = await this.wallet
+            .get(0)
+            .withTransactionBuilder()
+            .account.accountToUtxos({
             from: script,
             balances: [
                 {
                     token: 0,
-                    amount: amount
-                }
+                    amount: amount,
+                },
             ],
-            mintingOutputsStart: 2 // 0: DfTx, 1: change, 2: minted utxos (mandated by jellyfish SDK)
+            mintingOutputsStart: 2, // 0: DfTx, 1: change, 2: minted utxos (mandated by jellyfish SDK)
         }, script);
-        const txid = await this.wallet.get(0).client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
+        const txid = await this.wallet
+            .get(0)
+            .client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
         return txid;
     }
     async swapToken(fromTokenSymbol, fromAmount, toTokenSymbol, maxPrice = new bignumber_js_1.BigNumber(999999999)) {
@@ -97,30 +115,49 @@ class Transaction {
             return undefined;
         }
         const script = await this.wallet.get(0).getScript();
-        const txn = await this.wallet.get(0).withTransactionBuilder().dex.poolSwap({
+        const txn = await this.wallet
+            .get(0)
+            .withTransactionBuilder()
+            .dex
+            .poolSwap({
             fromScript: script,
-            toScript: script,
             fromTokenId: fromTokenID,
-            toTokenId: toTokenID,
             fromAmount: fromAmount,
-            maxPrice: new bignumber_js_1.BigNumber('9223372036854775807')
+            toScript: script,
+            toTokenId: toTokenID,
+            maxPrice: maxPrice,
         }, script);
-        const txid = await this.wallet.get(0).client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
+        const txid = await this.wallet
+            .get(0)
+            .client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
         return txid;
     }
     async getTokenID(symbol) {
-        let id = undefined;
-        let tokenList = await this.wallet.get(0).client.tokens.list(400);
-        for (const item of tokenList) {
-            console.log(item);
+        const tokenList = await this.aggregatePagedResponse(() => this.wallet.get(0).client.tokens.list(200));
+        const token = tokenList.find(tokenData => { return tokenData.symbol === symbol; });
+        if (token === undefined) {
+            return undefined;
         }
-        //const token = tokenList.find(tokenData => {return tokenData.symbol === 'ETH'})
-        //if (token === undefined){
-        return undefined;
-        //}
-        //else{
-        //  return Number(token.id)
-        //}
+        else {
+            return Number(token.id);
+        }
+    }
+    /**
+     * Function to aggregate a page response from Ocean API
+     * @param call Function call
+     * @returns Aggregated Response
+     */
+    async aggregatePagedResponse(call) {
+        const pages = [await call()];
+        while (pages[pages.length - 1].hasNext) {
+            try {
+                pages.push(await this.wallet.get(0).client.paginate(pages[pages.length - 1]));
+            }
+            catch (e) {
+                break;
+            }
+        }
+        return pages.flatMap((page) => page);
     }
 }
 exports.Transaction = Transaction;
