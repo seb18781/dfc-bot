@@ -5,6 +5,8 @@ import { ApiPagedResponse } from "@defichain/whale-api-client";
 import { BigNumber } from "bignumber.js";
 import { CTransactionSegWit } from "@defichain/jellyfish-transaction";
 import { TokenData } from "@defichain/whale-api-client/dist/api/tokens";
+import { resolve } from "path";
+import Text from './text.json'
 
 export class Transaction {
   private wallet: JellyfishWallet<WhaleWalletAccount, WalletHdNode>;
@@ -163,35 +165,50 @@ export class Transaction {
       return undefined;
     }
     const script = await this.wallet.get(0).getScript();
-    const txn = await this.wallet
-      .get(0)
-      .withTransactionBuilder()
-      .dex
-      .poolSwap(
-        {
-          fromScript: script,
-          fromTokenId: fromTokenID,
-          fromAmount: fromAmount,
-          toScript: script,
-          toTokenId: toTokenID,
-          maxPrice: maxPrice,
-        },
-        script
-      )
+    const txn = await this.wallet.get(0).withTransactionBuilder().dex.poolSwap(
+      {
+        fromScript: script,
+        fromTokenId: fromTokenID,
+        fromAmount: fromAmount,
+        toScript: script,
+        toTokenId: toTokenID,
+        maxPrice: maxPrice,
+      },
+      script
+    );
     const txid: string = await this.wallet
       .get(0)
       .client.rawtx.send({ hex: new CTransactionSegWit(txn).toHex() });
     return txid;
   }
 
-  public async addPoolLiquidity(A_Symbol: string,A_Amount: BigNumber,B_Symbol: string,B_Amount: BigNumber): Promise<string | undefined>{
+  /**
+   * Add liquidity to a pool
+   * @param A_Symbol Token A
+   * @param A_Amount Amount of Token A
+   * @param B_Symbol Token B
+   * @param B_Amount Amount of Token B
+   * @returns Transaction ID
+   */
+  public async addPoolLiquidity(
+    A_Symbol: string,
+    A_Amount: BigNumber,
+    B_Symbol: string,
+    B_Amount: BigNumber
+  ): Promise<string | undefined> {
     const A_ID = await this.getTokenID(A_Symbol);
     const B_ID = await this.getTokenID(B_Symbol);
     if (A_ID === undefined || B_ID === undefined) {
       return undefined;
     }
-    const A_Balance: BigNumber = await this.getTokenBalance(A_Symbol,new BigNumber(0));
-    const B_Balance: BigNumber = await this.getTokenBalance(B_Symbol,new BigNumber(0));
+    const A_Balance: BigNumber = await this.getTokenBalance(
+      A_Symbol,
+      new BigNumber(0)
+    );
+    const B_Balance: BigNumber = await this.getTokenBalance(
+      B_Symbol,
+      new BigNumber(0)
+    );
     if (A_Balance.lt(A_Amount) || B_Balance.lt(B_Amount)) {
       return undefined;
     }
@@ -201,27 +218,82 @@ export class Transaction {
       .withTransactionBuilder()
       .liqPool.addLiquidity(
         {
-          from: [{script: script,
-            balances: [{token: A_ID, amount: A_Amount},{token: B_ID, amount: B_Amount}]}],
-          shareAddress: script
+          from: [
+            {
+              script: script,
+              balances: [
+                { token: A_ID, amount: A_Amount },
+                { token: B_ID, amount: B_Amount },
+              ],
+            },
+          ],
+          shareAddress: script,
         },
         script
-      )
+      );
     const txid: string = await this.wallet
-    .get(0)
-    .client.rawtx.send({ hex: new CTransactionSegWit(txn).toHex() });
+      .get(0)
+      .client.rawtx.send({ hex: new CTransactionSegWit(txn).toHex() });
     return txid;
   }
 
   public async getTokenID(symbol: string): Promise<number | undefined> {
-    const tokenList = await this.aggregatePagedResponse(() => this.wallet.get(0).client.tokens.list(200))
-    const token = tokenList.find(tokenData => {return tokenData.symbol === symbol})
-    if (token === undefined){
-      return undefined
+    const tokenList = await this.aggregatePagedResponse(() =>
+      this.wallet.get(0).client.tokens.list(200)
+    );
+    const token = tokenList.find((tokenData) => {
+      return tokenData.symbol === symbol;
+    });
+    if (token === undefined) {
+      return undefined;
+    } else {
+      return Number(token.id);
     }
-    else{
-      return Number(token.id)
+  }
+
+  /**
+   * 
+   * @param txid Transaction ID
+   * @param startBlock Start Block (waitingBlocks is set to 2 by default!)
+   * @returns Tx sent to defichain 
+   */
+public async waitForTx(txid: string, startBlock: number = 0): Promise<boolean>{
+  if (startBlock == 0){
+    startBlock = await this.wallet.get(0).client.stats.get().then((result) => {return result.count.blocks})
+  }
+  let waitingBlocks = 2
+  return await new Promise((resolve) => {
+    let intervalID: NodeJS.Timeout
+    const callBackFunction = (): void => {
+      this.wallet.get(0).client.transactions
+      .get(txid)
+      .then((tx) => {
+        if (intervalID !== undefined){
+          clearInterval(intervalID)
+        }
+        resolve(true)
+      })
+      .catch((e) => {
+        this.wallet.get(0).client.stats.get()
+        .then((result) => {return result.count.blocks})
+        .then((block) => {
+          if (block > (startBlock + waitingBlocks)){
+            console.error(Text.TX_WAITING_TIME_EXCEEDED)
+            if (intervalID !== undefined) {
+              clearInterval(intervalID)
+            }
+            resolve(false)
+          }
+        })
+      })
     }
+    setTimeout(()=>{
+      callBackFunction()
+      intervalID = setInterval(() => {
+        callBackFunction()
+      },15000)
+    },15000)
+    })
   }
 
   /**

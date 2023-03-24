@@ -6,6 +6,9 @@
     "UTXO_TO_ACCOUNT":"utxo to account: ",
     "ACCOUNT_TO_UTXO":"account to utxo: ",
     "SWAP":"swap: ",
-    "ADD_LIQUIDITY": "add liquidity to pool: "
+    "ADD_LIQUIDITY": "add liquidity to pool: ",
+    "TX_WAITING_TIME_EXCEEDED": "number of blocks exceeded for verification",
+    "TRANSACTION_SENT": "transaction sent: ",
+    "TRANSACTION_NOT_SENT": "transaction not sent: "
 
 }

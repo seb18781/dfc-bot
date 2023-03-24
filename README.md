@@ -12,7 +12,7 @@ tsc -p tsconfig.json;node dfc-bot.js
 https://mydeficha.in/en/index.php?site=faucet
 
 # Get Token ID
-https://ocean.defichain.com/v0/mainnet/tokens?size=2000
+https://ocean.defichain.com/v0/mainnet/tokens?size=200
 
 # Get Pool ID
-https://ocean.defichain.com/v0/mainnet/poolpairs?size=2000
+https://ocean.defichain.com/v0/mainnet/poolpairs?size=200

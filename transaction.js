@@ -1,8 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Transaction = void 0;
 const bignumber_js_1 = require("bignumber.js");
 const jellyfish_transaction_1 = require("@defichain/jellyfish-transaction");
+const text_json_1 = __importDefault(require("./text.json"));
 class Transaction {
     constructor(wallet) {
         this.wallet = wallet;
@@ -123,11 +127,7 @@ class Transaction {
             return undefined;
         }
         const script = await this.wallet.get(0).getScript();
-        const txn = await this.wallet
-            .get(0)
-            .withTransactionBuilder()
-            .dex
-            .poolSwap({
+        const txn = await this.wallet.get(0).withTransactionBuilder().dex.poolSwap({
             fromScript: script,
             fromTokenId: fromTokenID,
             fromAmount: fromAmount,
@@ -140,6 +140,14 @@ class Transaction {
             .client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
         return txid;
     }
+    /**
+     * Add liquidity to a pool
+     * @param A_Symbol Token A
+     * @param A_Amount Amount of Token A
+     * @param B_Symbol Token B
+     * @param B_Amount Amount of Token B
+     * @returns Transaction ID
+     */
     async addPoolLiquidity(A_Symbol, A_Amount, B_Symbol, B_Amount) {
         const A_ID = await this.getTokenID(A_Symbol);
         const B_ID = await this.getTokenID(B_Symbol);
@@ -156,9 +164,16 @@ class Transaction {
             .get(0)
             .withTransactionBuilder()
             .liqPool.addLiquidity({
-            from: [{ script: script,
-                    balances: [{ token: A_ID, amount: A_Amount }, { token: B_ID, amount: B_Amount }] }],
-            shareAddress: script
+            from: [
+                {
+                    script: script,
+                    balances: [
+                        { token: A_ID, amount: A_Amount },
+                        { token: B_ID, amount: B_Amount },
+                    ],
+                },
+            ],
+            shareAddress: script,
         }, script);
         const txid = await this.wallet
             .get(0)
@@ -167,13 +182,53 @@ class Transaction {
     }
     async getTokenID(symbol) {
         const tokenList = await this.aggregatePagedResponse(() => this.wallet.get(0).client.tokens.list(200));
-        const token = tokenList.find(tokenData => { return tokenData.symbol === symbol; });
+        const token = tokenList.find((tokenData) => {
+            return tokenData.symbol === symbol;
+        });
         if (token === undefined) {
             return undefined;
         }
         else {
             return Number(token.id);
         }
+    }
+    async waitForTx(txid, startBlock = 0) {
+        if (startBlock == 0) {
+            startBlock = await this.wallet.get(0).client.stats.get().then((result) => { return result.count.blocks; });
+        }
+        let waitingBlocks = 2;
+        return await new Promise((resolve) => {
+            let intervalID;
+            const callBackFunction = () => {
+                this.wallet.get(0).client.transactions
+                    .get(txid)
+                    .then((tx) => {
+                    if (intervalID !== undefined) {
+                        clearInterval(intervalID);
+                    }
+                    resolve(true);
+                })
+                    .catch((e) => {
+                    this.wallet.get(0).client.stats.get()
+                        .then((result) => { return result.count.blocks; })
+                        .then((block) => {
+                        if (block > (startBlock + waitingBlocks)) {
+                            console.error(text_json_1.default.TX_WAITING_TIME_EXCEEDED);
+                            if (intervalID !== undefined) {
+                                clearInterval(intervalID);
+                            }
+                            resolve(false);
+                        }
+                    });
+                });
+            };
+            setTimeout(() => {
+                callBackFunction();
+                intervalID = setInterval(() => {
+                    callBackFunction();
+                }, 15000);
+            }, 15000);
+        });
     }
     /**
      * Function to aggregate a page response from Ocean API
