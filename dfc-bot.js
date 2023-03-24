@@ -38,13 +38,14 @@ const jellyfish_wallet_1 = require("@defichain/jellyfish-wallet");
 const jellyfish_wallet_mnemonic_1 = require("@defichain/jellyfish-wallet-mnemonic");
 const whale_api_wallet_1 = require("@defichain/whale-api-wallet");
 const transaction_1 = require("./transaction");
+const sequencer_1 = require("./sequencer");
 const bignumber_js_1 = require("bignumber.js");
 if (require.main === module) {
     main();
 }
 async function main() {
     await Helper.delay(100); //initialisation time
-    await console.log(Helper.getISODate() + ' ' + text_json_1.default.BOT_VERSION + parameter_json_1.default.VERSION);
+    await console.log(Helper.getISODate() + ' ' + text_json_1.default.BOT_VERSION + ': ' + parameter_json_1.default.VERSION);
     const network = jellyfish_network_1.TestNet;
     const client = new whale_api_client_1.WhaleApiClient({
         url: 'https://ocean.defichain.com',
@@ -52,7 +53,7 @@ async function main() {
         network: network.name
     });
     const wallet = new jellyfish_wallet_1.JellyfishWallet(jellyfish_wallet_mnemonic_1.MnemonicHdNodeProvider.fromWords(mnemonic_json_1.default.MNEMONIC, bip32Options(network)), new whale_api_wallet_1.WhaleWalletAccountProvider(client, network));
-    await console.log(Helper.getISODate() + ' ' + text_json_1.default.ADDRESS + await wallet.get(0).getAddress());
+    await console.log(Helper.getISODate() + ' ' + text_json_1.default.ADDRESS + ': ' + await wallet.get(0).getAddress());
     const bot = new Bot(wallet);
     await bot.run();
 }
@@ -70,20 +71,15 @@ exports.bip32Options = bip32Options;
 class Bot {
     constructor(wallet) {
         this.transaction = new transaction_1.Transaction(wallet);
+        this.sequencer = new sequencer_1.Sequencer(this.transaction);
     }
     async run() {
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.UTXO_BALANCE + await this.transaction.getUTXOBalance()); //Output UTXO balance
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + await this.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0))); //Output token balance
-        //console.log(Helper.getISODate() + ' ' + Text.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new BigNumber(500),new BigNumber(0.1))) //UTXO to Account
-        //console.log(Helper.getISODate() + ' ' + Text.ACCOUNT_TO_UTXO + await this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))) //ACCOUNT to UTXO
-        //console.log(Helper.getISODate() + ' ' + Text.SWAP + await this.transaction.swapToken('DFI',new BigNumber(229.65380233),'EUROC')) //Swap DFI to EUROC
-        let txid = await this.transaction.addPoolLiquidity('DFI', new bignumber_js_1.BigNumber(1), 'EUROC', new bignumber_js_1.BigNumber(1)); //Add liquidity to pool DFI-EUROC
-        if (await this.transaction.waitForTx(txid)) {
-            console.log(Helper.getISODate() + ' ' + text_json_1.default.TRANSACTION_VERIFIED + txid);
-        }
-        else {
-            console.log(Helper.getISODate() + ' ' + text_json_1.default.TRANSACTION_NOT_VERIFIED + txid);
-        }
+        console.log(Helper.getISODate() + ' ' + text_json_1.default.UTXO_BALANCE + ': ' + await this.sequencer.transaction.getUTXOBalance()); //Output UTXO balance
+        console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + ': ' + await this.sequencer.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0))); //Output token balance
+        //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(1000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
+        //await this.sequencer.sendTx(() => {return this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))},Text.ACCOUNT_TO_UTXO)
+        //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(500),'DUSD')},Text.SWAP)
+        await this.sequencer.sendTx(() => { return this.sequencer.transaction.addPoolLiquidity('DFI', new bignumber_js_1.BigNumber(475), 'DUSD', new bignumber_js_1.BigNumber(580)); }, text_json_1.default.ADD_LIQUIDITY);
     }
 }
 exports.Bot = Bot;

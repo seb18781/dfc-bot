@@ -192,11 +192,17 @@ class Transaction {
             return Number(token.id);
         }
     }
+    /**
+     *
+     * @param txid Transaction ID
+     * @param startBlock Start Block (waitingBlocks is set to 2 by default!)
+     * @returns Tx sent to defichain
+     */
     async waitForTx(txid, startBlock = 0) {
         if (startBlock == 0) {
             startBlock = await this.wallet.get(0).client.stats.get().then((result) => { return result.count.blocks; });
         }
-        let waitingBlocks = 2;
+        let waitingBlocks = 5;
         return await new Promise((resolve) => {
             let intervalID;
             const callBackFunction = () => {

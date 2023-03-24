@@ -9,6 +9,7 @@ import { JellyfishWallet, WalletHdNode } from '@defichain/jellyfish-wallet'
 import { Bip32Options, MnemonicHdNodeProvider } from '@defichain/jellyfish-wallet-mnemonic'
 import { WhaleWalletAccount, WhaleWalletAccountProvider } from '@defichain/whale-api-wallet'
 import { Transaction } from './transaction'
+import { Sequencer } from './sequencer'
 import { BigNumber } from 'bignumber.js'
 import { AddressToken } from '@defichain/whale-api-client/dist/api/address'
 
@@ -18,7 +19,7 @@ if (require.main === module) {
 
 export async function main(): Promise<void> {
   await Helper.delay(100) //initialisation time
-  await console.log(Helper.getISODate() + ' ' + Text.BOT_VERSION + Parameter.VERSION)
+  await console.log(Helper.getISODate() + ' ' + Text.BOT_VERSION + ': ' + Parameter.VERSION)
   const network: Network = TestNet
 
   const client = new WhaleApiClient({
@@ -30,7 +31,7 @@ export async function main(): Promise<void> {
     bip32Options(network)),
     new WhaleWalletAccountProvider(client, network))
   
-  await console.log(Helper.getISODate() + ' ' + Text.ADDRESS + await wallet.get(0).getAddress())
+  await console.log(Helper.getISODate() + ' ' + Text.ADDRESS + ': ' + await wallet.get(0).getAddress())
   const bot = new Bot(wallet)
   await bot.run()
 }
@@ -47,25 +48,19 @@ export function bip32Options(network: Network): Bip32Options {
 
 export class Bot{
   readonly transaction: Transaction
+  readonly sequencer: Sequencer
   constructor(wallet: JellyfishWallet<WhaleWalletAccount, WalletHdNode>
   ) {
     this.transaction = new Transaction(wallet)
+    this.sequencer = new Sequencer(this.transaction)
   }
 
   async run():Promise<void> {
-    console.log(Helper.getISODate() + ' ' + Text.UTXO_BALANCE + await this.transaction.getUTXOBalance()) //Output UTXO balance
-    console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + await this.transaction.getTokenBalance('DFI',new BigNumber(0))) //Output token balance
-    //console.log(Helper.getISODate() + ' ' + Text.UTXO_TO_ACCOUNT + await this.transaction.utxoToAccount(new BigNumber(500),new BigNumber(0.1))) //UTXO to Account
-    //console.log(Helper.getISODate() + ' ' + Text.ACCOUNT_TO_UTXO + await this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))) //ACCOUNT to UTXO
-    //console.log(Helper.getISODate() + ' ' + Text.SWAP + await this.transaction.swapToken('DFI',new BigNumber(229.65380233),'EUROC')) //Swap DFI to EUROC
-
-    let txid: string = await this.transaction.addPoolLiquidity('DFI',new BigNumber(1),'EUROC',new BigNumber(1))//Add liquidity to pool DFI-EUROC
-    if (await this.transaction.waitForTx(txid)){
-      console.log(Helper.getISODate() + ' ' + Text.TRANSACTION_SENT + txid)
-    }
-    else
-    {
-      console.log(Helper.getISODate() + ' ' + Text.TRANSACTION_NOT_SENT + txid)
-    }
+    console.log(Helper.getISODate() + ' ' + Text.UTXO_BALANCE + ': ' + await this.sequencer.transaction.getUTXOBalance()) //Output UTXO balance
+    console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + ': ' + await this.sequencer.transaction.getTokenBalance('DFI',new BigNumber(0))) //Output token balance
+    //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(1000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
+    //await this.sequencer.sendTx(() => {return this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))},Text.ACCOUNT_TO_UTXO)
+    //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(500),'DUSD')},Text.SWAP)
+    await this.sequencer.sendTx(() => {return this.sequencer.transaction.addPoolLiquidity('DFI',new BigNumber(475),'DUSD',new BigNumber(580))},Text.ADD_LIQUIDITY)
   }
 }

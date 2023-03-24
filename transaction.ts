@@ -261,7 +261,7 @@ public async waitForTx(txid: string, startBlock: number = 0): Promise<boolean>{
   if (startBlock == 0){
     startBlock = await this.wallet.get(0).client.stats.get().then((result) => {return result.count.blocks})
   }
-  let waitingBlocks = 2
+  let waitingBlocks = 5
   return await new Promise((resolve) => {
     let intervalID: NodeJS.Timeout
     const callBackFunction = (): void => {
