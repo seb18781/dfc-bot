@@ -54,7 +54,7 @@ class Transaction {
         if (utxoBalance.lte(minBalance) ||
             utxoBalance.lte(saveHeaven) ||
             utxoBalance.lte(amount)) {
-            return undefined;
+            throw new Error("utxo balance too low");
         }
         const script = await this.wallet.get(0).getScript();
         const txn = await this.wallet
@@ -87,7 +87,7 @@ class Transaction {
     async accountToUTXO(amount, minBalance) {
         const accountBalance = await this.getTokenBalance("DFI", new bignumber_js_1.BigNumber(0));
         if (accountBalance.lt(amount)) {
-            return undefined;
+            throw new Error("account balance too low");
         }
         const script = await this.wallet.get(0).getScript();
         const txn = await this.wallet
@@ -119,12 +119,12 @@ class Transaction {
     async swapToken(fromTokenSymbol, fromAmount, toTokenSymbol, maxPrice = new bignumber_js_1.BigNumber(999999999)) {
         const fromTokenBalance = await this.getTokenBalance(fromTokenSymbol, new bignumber_js_1.BigNumber(0));
         if (fromAmount.gt(fromTokenBalance)) {
-            return undefined;
+            throw new Error("token balance too low");
         }
         const fromTokenID = await this.getTokenID(fromTokenSymbol);
         const toTokenID = await this.getTokenID(toTokenSymbol);
         if (fromTokenID === undefined || toTokenID === undefined) {
-            return undefined;
+            throw new Error("token symbol unknown");
         }
         const script = await this.wallet.get(0).getScript();
         const txn = await this.wallet.get(0).withTransactionBuilder().dex.poolSwap({
@@ -152,12 +152,12 @@ class Transaction {
         const A_ID = await this.getTokenID(A_Symbol);
         const B_ID = await this.getTokenID(B_Symbol);
         if (A_ID === undefined || B_ID === undefined) {
-            return undefined;
+            throw new Error("token symbol unknown");
         }
         const A_Balance = await this.getTokenBalance(A_Symbol, new bignumber_js_1.BigNumber(0));
         const B_Balance = await this.getTokenBalance(B_Symbol, new bignumber_js_1.BigNumber(0));
         if (A_Balance.lt(A_Amount) || B_Balance.lt(B_Amount)) {
-            return undefined;
+            throw new Error("token balance too low");
         }
         const script = await this.wallet.get(0).getScript();
         const txn = await this.wallet
@@ -186,10 +186,22 @@ class Transaction {
             return tokenData.symbol === symbol;
         });
         if (token === undefined) {
-            return undefined;
+            throw new Error("token symbol unknown");
         }
         else {
             return Number(token.id);
+        }
+    }
+    async getPoolData(tokenASymbol, tokenBSymbol) {
+        const poolDataList = await this.aggregatePagedResponse(() => this.wallet.get(0).client.poolpairs.list(200));
+        const poolData = poolDataList.find((poolData) => {
+            return ((poolData.symbol === (tokenASymbol + '-' + tokenBSymbol)) || (poolData.symbol === (tokenBSymbol + '-' + tokenASymbol)));
+        });
+        if (poolData === undefined) {
+            throw new Error("pool unknown");
+        }
+        else {
+            return poolData;
         }
     }
     /**

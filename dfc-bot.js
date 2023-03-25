@@ -30,8 +30,8 @@ exports.Bot = exports.bip32Options = exports.main = void 0;
 const Helper = __importStar(require("./helper"));
 const text_json_1 = __importDefault(require("./text.json"));
 const parameter_json_1 = __importDefault(require("./parameter.json"));
-//import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
-const mnemonic_json_1 = __importDefault(require("C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json"));
+const mnemonic_json_1 = __importDefault(require("c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json"));
+//import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
 const jellyfish_network_1 = require("@defichain/jellyfish-network");
 const whale_api_client_1 = require("@defichain/whale-api-client");
 const jellyfish_wallet_1 = require("@defichain/jellyfish-wallet");
@@ -76,10 +76,10 @@ class Bot {
     async run() {
         console.log(Helper.getISODate() + ' ' + text_json_1.default.UTXO_BALANCE + ': ' + await this.sequencer.transaction.getUTXOBalance()); //Output UTXO balance
         console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + ': ' + await this.sequencer.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0))); //Output token balance
-        //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(1000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
+        //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(2000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
         //await this.sequencer.sendTx(() => {return this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))},Text.ACCOUNT_TO_UTXO)
-        //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(500),'DUSD')},Text.SWAP)
-        await this.sequencer.sendTx(() => { return this.sequencer.transaction.addPoolLiquidity('DFI', new bignumber_js_1.BigNumber(475), 'DUSD', new bignumber_js_1.BigNumber(580)); }, text_json_1.default.ADD_LIQUIDITY);
+        //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(1000),'DUSD')},Text.SWAP)
+        await this.sequencer.addPoolLiquidity('DFI', 'DUSD', new bignumber_js_1.BigNumber(2000));
     }
 }
 exports.Bot = Bot;

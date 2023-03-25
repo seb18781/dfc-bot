@@ -1,8 +1,8 @@
 import * as Helper from './helper'
 import Text from './text.json'
 import Parameter from './parameter.json'
-//import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
-import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
+import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
+//import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
 import { MainNet, Network, TestNet } from '@defichain/jellyfish-network'
 import { WhaleApiClient } from '@defichain/whale-api-client'
 import { JellyfishWallet, WalletHdNode } from '@defichain/jellyfish-wallet'
@@ -58,9 +58,9 @@ export class Bot{
   async run():Promise<void> {
     console.log(Helper.getISODate() + ' ' + Text.UTXO_BALANCE + ': ' + await this.sequencer.transaction.getUTXOBalance()) //Output UTXO balance
     console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + ': ' + await this.sequencer.transaction.getTokenBalance('DFI',new BigNumber(0))) //Output token balance
-    //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(1000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
+    //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(2000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
     //await this.sequencer.sendTx(() => {return this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))},Text.ACCOUNT_TO_UTXO)
-    //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(500),'DUSD')},Text.SWAP)
-    await this.sequencer.sendTx(() => {return this.sequencer.transaction.addPoolLiquidity('DFI',new BigNumber(475),'DUSD',new BigNumber(580))},Text.ADD_LIQUIDITY)
+    //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(1000),'DUSD')},Text.SWAP)
+    //await this.sequencer.addPoolLiquidity('DFI','DUSD',new BigNumber(2000))
   }
 }

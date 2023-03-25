@@ -29,6 +29,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Sequencer = void 0;
 const text_json_1 = __importDefault(require("./text.json"));
 const Helper = __importStar(require("./helper"));
+const bignumber_js_1 = require("bignumber.js");
 /**
  * Aims to provide common used subsequences or sequence related logics
  */
@@ -53,6 +54,42 @@ class Sequencer {
                 console.log(Helper.getISODate() + ' ' + text_json_1.default.TRANSACTION_NOT_SENT + ': ' + txid);
                 return false;
             }
+        }
+    }
+    async addPoolLiquidity(tokenASymbol, tokenBSymbol, tokenAAmount) {
+        const tokenABalance = await this.transaction.getTokenBalance(tokenASymbol, new bignumber_js_1.BigNumber(0));
+        const tokenBBalance = await this.transaction.getTokenBalance(tokenBSymbol, new bignumber_js_1.BigNumber(0));
+        let tokenBAmount;
+        if (tokenAAmount > tokenABalance) {
+            tokenAAmount = tokenABalance;
+        }
+        let poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol);
+        if (tokenASymbol === poolData.tokenA.symbol) {
+            tokenBAmount = new bignumber_js_1.BigNumber(tokenAAmount.toNumber() * Number(poolData.priceRatio.ba));
+            if (tokenBAmount > tokenBBalance) {
+                tokenBAmount = tokenBBalance;
+                tokenAAmount = new bignumber_js_1.BigNumber(tokenBAmount.toNumber() * Number(poolData.priceRatio.ab));
+            }
+            return await this.sendTx(() => {
+                return this.transaction.addPoolLiquidity(tokenASymbol, tokenAAmount, tokenBSymbol, tokenBAmount);
+            }, text_json_1.default.ADD_LIQUIDITY + ' ' + tokenASymbol + '-' + tokenBSymbol + ' with ' +
+                tokenAAmount + ' ' + tokenASymbol + ' and ' + tokenBAmount + ' ' + tokenBSymbol);
+        }
+        else if (tokenASymbol === poolData.tokenB.symbol) {
+            tokenBAmount = new bignumber_js_1.BigNumber(tokenAAmount.toNumber() * Number(poolData.priceRatio.ab));
+            if (tokenBAmount > tokenBBalance) {
+                tokenBAmount = tokenBBalance;
+                tokenAAmount = new bignumber_js_1.BigNumber(tokenBAmount.toNumber() * Number(poolData.priceRatio.ba));
+            }
+            console.log(text_json_1.default.ADD_LIQUIDITY + ' ' + tokenBSymbol + '-' + tokenASymbol + ' with ' +
+                tokenBAmount + ' ' + tokenBSymbol + ' and ' + tokenAAmount + ' ' + tokenASymbol);
+            return await this.sendTx(() => {
+                return this.transaction.addPoolLiquidity(tokenBSymbol, tokenBAmount, tokenASymbol, tokenAAmount);
+            }, text_json_1.default.ADD_LIQUIDITY + ' ' + tokenBSymbol + '-' + tokenASymbol + ' with ' +
+                tokenBAmount + ' ' + tokenBSymbol + ' and ' + tokenAAmount + ' ' + tokenASymbol);
+        }
+        else {
+            return false;
         }
     }
 }
