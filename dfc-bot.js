@@ -48,7 +48,7 @@ async function main() {
     await console.log(Helper.getISODate() + ' ' + text_json_1.default.BOT_VERSION + ': ' + parameter_json_1.default.VERSION);
     const network = jellyfish_network_1.TestNet;
     const client = new whale_api_client_1.WhaleApiClient({
-        url: 'https://ocean.defichain.com',
+        url: parameter_json_1.default.OCEAN_URL[0],
         version: 'v0',
         network: network.name
     });
@@ -79,7 +79,13 @@ class Bot {
         //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(2000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
         //await this.sequencer.sendTx(() => {return this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))},Text.ACCOUNT_TO_UTXO)
         //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(1000),'DUSD')},Text.SWAP)
-        await this.sequencer.addPoolLiquidity('DFI', 'DUSD', new bignumber_js_1.BigNumber(2000));
+        //await this.sequencer.addPoolLiquidity('EUROC','DFI',new BigNumber(2000))
+        //Task: Collect crypto dust and reinvest in pool
+        //----------------------------------------------
+        //1) Swap Crypto dust to Token A
+        console.log(await this.sequencer.transaction.getAddressTokenData(['DUSD', 'EUROC']));
+        //2) Swap 50% of DFI to Token B
+        //3) Add Token A and Token B to Pool
     }
 }
 exports.Bot = Bot;

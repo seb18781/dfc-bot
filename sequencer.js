@@ -56,17 +56,25 @@ class Sequencer {
             }
         }
     }
+    /**
+     * Adds liquidity to a pool
+     * @param tokenASymbol Token A symbol
+     * @param tokenBSymbol Token A symbol
+     * @param tokenAAmount Amount ofToken A to add to Pool (if amount > balance --> maxmimum balance is added to pool)
+     * @returns Transaction sent
+     */
     async addPoolLiquidity(tokenASymbol, tokenBSymbol, tokenAAmount) {
         const tokenABalance = await this.transaction.getTokenBalance(tokenASymbol, new bignumber_js_1.BigNumber(0));
         const tokenBBalance = await this.transaction.getTokenBalance(tokenBSymbol, new bignumber_js_1.BigNumber(0));
         let tokenBAmount;
-        if (tokenAAmount > tokenABalance) {
+        if (tokenAAmount.toNumber() > tokenABalance.toNumber()) {
             tokenAAmount = tokenABalance;
         }
         let poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol);
         if (tokenASymbol === poolData.tokenA.symbol) {
             tokenBAmount = new bignumber_js_1.BigNumber(tokenAAmount.toNumber() * Number(poolData.priceRatio.ba));
-            if (tokenBAmount > tokenBBalance) {
+            console.log(tokenAAmount + ' ' + tokenBAmount);
+            if (tokenBAmount.toNumber() > tokenBBalance.toNumber()) {
                 tokenBAmount = tokenBBalance;
                 tokenAAmount = new bignumber_js_1.BigNumber(tokenBAmount.toNumber() * Number(poolData.priceRatio.ab));
             }
@@ -77,7 +85,7 @@ class Sequencer {
         }
         else if (tokenASymbol === poolData.tokenB.symbol) {
             tokenBAmount = new bignumber_js_1.BigNumber(tokenAAmount.toNumber() * Number(poolData.priceRatio.ab));
-            if (tokenBAmount > tokenBBalance) {
+            if (tokenBAmount.toNumber() > tokenBBalance.toNumber()) {
                 tokenBAmount = tokenBBalance;
                 tokenAAmount = new bignumber_js_1.BigNumber(tokenBAmount.toNumber() * Number(poolData.priceRatio.ba));
             }

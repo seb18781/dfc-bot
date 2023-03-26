@@ -26,10 +26,7 @@ class Transaction {
      * @returns first appearance of the dToken will be returned
      */
     async getTokenBalance(symbol, minBalance) {
-        const address = await this.wallet.get(0).getAddress();
-        const tokenList = await this.wallet
-            .get(0)
-            .client.address.listToken(address);
+        const tokenList = await this.getAddressTokenData([symbol]);
         const token = tokenList.find((token) => {
             return (token.isDAT &&
                 token.symbol === symbol &&
@@ -190,6 +187,29 @@ class Transaction {
         }
         else {
             return Number(token.id);
+        }
+    }
+    async getAddressTokenData(tokenSymbols = []) {
+        const address = await this.wallet.get(0).getAddress();
+        const tokenList = await this.aggregatePagedResponse(() => this.wallet.get(0).client.address.listToken(address, 200));
+        let tokenData = [];
+        if (tokenSymbols.length === 0) {
+            tokenData = tokenList;
+        }
+        else {
+            tokenSymbols.forEach((tokenSymbol) => {
+                for (var tokenListElement of tokenList) {
+                    if (tokenListElement.symbol === tokenSymbol) {
+                        tokenData.push(tokenListElement);
+                    }
+                }
+            });
+        }
+        if (tokenData.length === 0) {
+            throw new Error("no tokens found at this address");
+        }
+        else {
+            return tokenData;
         }
     }
     async getPoolData(tokenASymbol, tokenBSymbol) {

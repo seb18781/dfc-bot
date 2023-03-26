@@ -32,17 +32,25 @@ export class Sequencer {
 
     }
 
+    /**
+     * Adds liquidity to a pool
+     * @param tokenASymbol Token A symbol
+     * @param tokenBSymbol Token A symbol
+     * @param tokenAAmount Amount ofToken A to add to Pool (if amount > balance --> maxmimum balance is added to pool)
+     * @returns Transaction sent
+     */
     public async addPoolLiquidity(tokenASymbol: string, tokenBSymbol: string, tokenAAmount: BigNumber): Promise<boolean> {
         const tokenABalance = await this.transaction.getTokenBalance(tokenASymbol, new BigNumber(0))
         const tokenBBalance = await this.transaction.getTokenBalance(tokenBSymbol, new BigNumber(0))
         let tokenBAmount: BigNumber
-        if (tokenAAmount > tokenABalance) {
+        if (tokenAAmount.toNumber() > tokenABalance.toNumber()) {
             tokenAAmount = tokenABalance
         }
         let poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol)
         if (tokenASymbol === poolData.tokenA.symbol) {
             tokenBAmount = new BigNumber(tokenAAmount.toNumber() * Number(poolData.priceRatio.ba))
-            if (tokenBAmount > tokenBBalance) {
+            console.log(tokenAAmount + ' ' + tokenBAmount)
+            if (tokenBAmount.toNumber() > tokenBBalance.toNumber()) {
                 tokenBAmount = tokenBBalance
                 tokenAAmount = new BigNumber(tokenBAmount.toNumber() * Number(poolData.priceRatio.ab))
             }
@@ -55,7 +63,7 @@ export class Sequencer {
         }
         else if (tokenASymbol === poolData.tokenB.symbol) {
             tokenBAmount = new BigNumber(tokenAAmount.toNumber() * Number(poolData.priceRatio.ab))
-            if (tokenBAmount > tokenBBalance) {
+            if (tokenBAmount.toNumber() > tokenBBalance.toNumber()) {
                 tokenBAmount = tokenBBalance
                 tokenAAmount = new BigNumber(tokenBAmount.toNumber() * Number(poolData.priceRatio.ba))
             }

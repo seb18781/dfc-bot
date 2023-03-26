@@ -32,14 +32,8 @@ export class Transaction {
    * @param minBalance dToken with less amount will not be evaluated
    * @returns first appearance of the dToken will be returned
    */
-  public async getTokenBalance(
-    symbol: string,
-    minBalance: BigNumber
-  ): Promise<BigNumber | undefined> {
-    const address: string = await this.wallet.get(0).getAddress();
-    const tokenList: AddressToken[] = await this.wallet
-      .get(0)
-      .client.address.listToken(address);
+  public async getTokenBalance(symbol: string,minBalance: BigNumber): Promise<BigNumber | undefined> {
+    const tokenList: AddressToken[] = await this.getAddressTokenData([symbol])
     const token: AddressToken = tokenList.find((token) => {
       return (
         token.isDAT &&
@@ -252,7 +246,32 @@ export class Transaction {
     }
   }
 
-  async getPoolData(tokenASymbol: string, tokenBSymbol: string): Promise<PoolPairData> {
+  public async getAddressTokenData(tokenSymbols: string[] = []): Promise<AddressToken[]> {
+    const address: string = await this.wallet.get(0).getAddress();
+    const tokenList: AddressToken[] = await this.aggregatePagedResponse(() =>
+    this.wallet.get(0).client.address.listToken(address,200))
+    let tokenData: AddressToken[] = []
+    if (tokenSymbols.length === 0) {
+      tokenData = tokenList
+    }
+    else{
+      tokenSymbols.forEach((tokenSymbol: string) => {
+        for (var tokenListElement of tokenList){
+          if (tokenListElement.symbol === tokenSymbol){
+            tokenData.push(tokenListElement)
+          }
+        }
+      });
+    }
+    if (tokenData.length === 0) {
+      throw new Error("no tokens found at this address")
+    }
+    else {
+      return tokenData
+    }
+  }
+
+  public async getPoolData(tokenASymbol: string, tokenBSymbol: string): Promise<PoolPairData> {
     const poolDataList = await this.aggregatePagedResponse(() => this.wallet.get(0).client.poolpairs.list(200))
     const poolData = poolDataList.find((poolData) => {
       return ((poolData.symbol === (tokenASymbol + '-' + tokenBSymbol)) || (poolData.symbol === (tokenBSymbol + '-' + tokenASymbol)))
@@ -271,42 +290,42 @@ export class Transaction {
    * @param startBlock Start Block (waitingBlocks is set to 2 by default!)
    * @returns Tx sent to defichain 
    */
-public async waitForTx(txid: string, startBlock: number = 0): Promise<boolean>{
-  if (startBlock == 0){
-    startBlock = await this.wallet.get(0).client.stats.get().then((result) => {return result.count.blocks})
-  }
-  let waitingBlocks = 5
-  return await new Promise((resolve) => {
-    let intervalID: NodeJS.Timeout
-    const callBackFunction = (): void => {
-      this.wallet.get(0).client.transactions
-      .get(txid)
-      .then((tx) => {
-        if (intervalID !== undefined){
-          clearInterval(intervalID)
-        }
-        resolve(true)
-      })
-      .catch((e) => {
-        this.wallet.get(0).client.stats.get()
-        .then((result) => {return result.count.blocks})
-        .then((block) => {
-          if (block > (startBlock + waitingBlocks)){
-            console.error(Text.TX_WAITING_TIME_EXCEEDED)
+  public async waitForTx(txid: string, startBlock: number = 0): Promise<boolean> {
+    if (startBlock == 0) {
+      startBlock = await this.wallet.get(0).client.stats.get().then((result) => { return result.count.blocks })
+    }
+    let waitingBlocks = 5
+    return await new Promise((resolve) => {
+      let intervalID: NodeJS.Timeout
+      const callBackFunction = (): void => {
+        this.wallet.get(0).client.transactions
+          .get(txid)
+          .then((tx) => {
             if (intervalID !== undefined) {
               clearInterval(intervalID)
             }
-            resolve(false)
-          }
-        })
-      })
-    }
-    setTimeout(()=>{
-      callBackFunction()
-      intervalID = setInterval(() => {
+            resolve(true)
+          })
+          .catch((e) => {
+            this.wallet.get(0).client.stats.get()
+              .then((result) => { return result.count.blocks })
+              .then((block) => {
+                if (block > (startBlock + waitingBlocks)) {
+                  console.error(Text.TX_WAITING_TIME_EXCEEDED)
+                  if (intervalID !== undefined) {
+                    clearInterval(intervalID)
+                  }
+                  resolve(false)
+                }
+              })
+          })
+      }
+      setTimeout(() => {
         callBackFunction()
-      },15000)
-    },15000)
+        intervalID = setInterval(() => {
+          callBackFunction()
+        }, 15000)
+      }, 15000)
     })
   }
 

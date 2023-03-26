@@ -1,3 +1,4 @@
 {
-    "VERSION" : "0.1.0"
+    "VERSION" : "0.1.0",
+    "OCEAN_URL": ["https://ocean.defichain.com","https://ocean.defichain.io"]
 }
