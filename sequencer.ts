@@ -2,6 +2,7 @@ import Text from './text.json'
 import { Transaction } from './transaction'
 import * as Helper from './helper'
 import { BigNumber } from "bignumber.js";
+import { AddressToken } from "@defichain/whale-api-client/dist/api/address";
 
 /**
  * Aims to provide common used subsequences or sequence related logics
@@ -11,12 +12,20 @@ export class Sequencer {
     constructor(transaction: Transaction) {
         this.transaction = transaction
     }
+
+    /**
+     * 
+     * @param transaction Corresponding function reference of transaction
+     * @param text Output to Console
+     * @returns Transaction sent
+     */
     public async sendTx(transaction: () => Promise<string>, text: string = undefined): Promise<boolean> {
         let txid = await transaction()
         if (text !== undefined) {
             console.log(Helper.getISODate() + ' ' + text)
         }
         if (txid === undefined) {
+            console.log(Helper.getISODate() + ' ' + Text.TRANSACTION_NOT_SENT + ': ' + txid)
             return false
         }
         else {
@@ -80,4 +89,29 @@ export class Sequencer {
             return false
         }
     }
+
+    public async collectCryptoDust(dustTokenSymbols: string[], dustTokenMinBalance: BigNumber[], outputTokenSymbol: string, text: string = undefined): Promise<boolean>{
+        let returnValue = true
+        if (text !== undefined) {
+            console.log(Helper.getISODate() + ' ' + text)
+        }
+        const dustTokenList: AddressToken[] = await this.transaction.getAddressTokenData(dustTokenSymbols)
+        if (dustTokenList === undefined){
+            console.log(Helper.getISODate() + ' ' + Text.NO_CRYPTO_DUST_COLLECTED)
+            returnValue = false
+            return returnValue
+        } 
+        for (let i=0;i<dustTokenList.length;i++){
+            let dustToken: AddressToken = dustTokenList[i]
+            if (Number(dustToken.amount) < Number(dustTokenMinBalance[i])){
+                console.log(Helper.getISODate() + ' ' + Text.NO_ENOUGH_BALANCE + ' of token ' + dustToken.symbol)
+            }
+            else if (dustToken.isDAT && Number(dustToken.amount) > dustTokenMinBalance[i].toNumber()){
+                returnValue = returnValue && await this.sendTx(() => {return this.transaction.swapToken(dustToken.symbol,new BigNumber(0.0001),outputTokenSymbol)},
+                Text.SWAP + ' ' + dustToken.symbol + ' to ' + outputTokenSymbol)
+            }
+        }
+        return returnValue
+    }
+
 }

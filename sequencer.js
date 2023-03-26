@@ -37,12 +37,19 @@ class Sequencer {
     constructor(transaction) {
         this.transaction = transaction;
     }
+    /**
+     *
+     * @param transaction Corresponding function reference of transaction
+     * @param text Output to Console
+     * @returns Transaction sent
+     */
     async sendTx(transaction, text = undefined) {
         let txid = await transaction();
         if (text !== undefined) {
             console.log(Helper.getISODate() + ' ' + text);
         }
         if (txid === undefined) {
+            console.log(Helper.getISODate() + ' ' + text_json_1.default.TRANSACTION_NOT_SENT + ': ' + txid);
             return false;
         }
         else {
@@ -99,6 +106,28 @@ class Sequencer {
         else {
             return false;
         }
+    }
+    async collectCryptoDust(dustTokenSymbols, dustTokenMinBalance, outputTokenSymbol, text = undefined) {
+        let returnValue = true;
+        if (text !== undefined) {
+            console.log(Helper.getISODate() + ' ' + text);
+        }
+        const dustTokenList = await this.transaction.getAddressTokenData(dustTokenSymbols);
+        if (dustTokenList === undefined) {
+            console.log(Helper.getISODate() + ' ' + text_json_1.default.NO_CRYPTO_DUST_COLLECTED);
+            returnValue = false;
+            return returnValue;
+        }
+        for (let i = 0; i < dustTokenList.length; i++) {
+            let dustToken = dustTokenList[i];
+            if (Number(dustToken.amount) < Number(dustTokenMinBalance[i])) {
+                console.log(Helper.getISODate() + ' ' + text_json_1.default.NO_ENOUGH_BALANCE + ' of token ' + dustToken.symbol);
+            }
+            else if (dustToken.isDAT && Number(dustToken.amount) > dustTokenMinBalance[i].toNumber()) {
+                returnValue = returnValue && await this.sendTx(() => { return this.transaction.swapToken(dustToken.symbol, new bignumber_js_1.BigNumber(0.0001), outputTokenSymbol); }, text_json_1.default.SWAP + ' ' + dustToken.symbol + ' to ' + outputTokenSymbol);
+            }
+        }
+        return returnValue;
     }
 }
 exports.Sequencer = Sequencer;

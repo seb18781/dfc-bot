@@ -4,8 +4,6 @@ import { WhaleWalletAccount } from "@defichain/whale-api-wallet";
 import { ApiPagedResponse } from "@defichain/whale-api-client";
 import { BigNumber } from "bignumber.js";
 import { CTransactionSegWit } from "@defichain/jellyfish-transaction";
-import { TokenData } from "@defichain/whale-api-client/dist/api/tokens";
-import { resolve } from "path";
 import Text from './text.json'
 import { PoolPairData } from '@defichain/whale-api-client/dist/api/poolpairs'
 
@@ -264,7 +262,7 @@ export class Transaction {
       });
     }
     if (tokenData.length === 0) {
-      throw new Error("no tokens found at this address")
+      return undefined
     }
     else {
       return tokenData

@@ -206,7 +206,7 @@ class Transaction {
             });
         }
         if (tokenData.length === 0) {
-            throw new Error("no tokens found at this address");
+            return undefined;
         }
         else {
             return tokenData;

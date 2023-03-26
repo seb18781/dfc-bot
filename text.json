@@ -9,6 +9,8 @@
     "ADD_LIQUIDITY": "add liquidity to pool",
     "TX_WAITING_TIME_EXCEEDED": "number of blocks exceeded for verification",
     "TRANSACTION_SENT": "transaction sent",
-    "TRANSACTION_NOT_SENT": "transaction not sent"
-
+    "TRANSACTION_NOT_SENT": "transaction not sent",
+    "COLLECT_CRYPTO_DUST": "collect crypto dust",
+    "NO_CRYPTO_DUST_COLLECTED": "no crypto dust collected",
+    "NO_ENOUGH_BALANCE": "not enough balance"
 }

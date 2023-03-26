@@ -78,12 +78,12 @@ class Bot {
         console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + ': ' + await this.sequencer.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0))); //Output token balance
         //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(2000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
         //await this.sequencer.sendTx(() => {return this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))},Text.ACCOUNT_TO_UTXO)
-        //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(1000),'DUSD')},Text.SWAP)
+        //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(1000),'EUROC')},Text.SWAP)
         //await this.sequencer.addPoolLiquidity('EUROC','DFI',new BigNumber(2000))
         //Task: Collect crypto dust and reinvest in pool
         //----------------------------------------------
         //1) Swap Crypto dust to Token A
-        console.log(await this.sequencer.transaction.getAddressTokenData(['DUSD', 'EUROC']));
+        await this.sequencer.collectCryptoDust(['EUROC', 'DUSD'], [new bignumber_js_1.BigNumber(0.0001), new bignumber_js_1.BigNumber(0.0001)], 'DFI', text_json_1.default.COLLECT_CRYPTO_DUST);
         //2) Swap 50% of DFI to Token B
         //3) Add Token A and Token B to Pool
     }
