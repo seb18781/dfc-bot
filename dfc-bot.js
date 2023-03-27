@@ -30,8 +30,8 @@ exports.Bot = exports.bip32Options = exports.main = void 0;
 const Helper = __importStar(require("./helper"));
 const text_json_1 = __importDefault(require("./text.json"));
 const parameter_json_1 = __importDefault(require("./parameter.json"));
-const mnemonic_json_1 = __importDefault(require("c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json"));
-//import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
+//import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
+const mnemonic_json_1 = __importDefault(require("C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json"));
 const jellyfish_network_1 = require("@defichain/jellyfish-network");
 const whale_api_client_1 = require("@defichain/whale-api-client");
 const jellyfish_wallet_1 = require("@defichain/jellyfish-wallet");
@@ -78,13 +78,15 @@ class Bot {
         console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + ': ' + await this.sequencer.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0))); //Output token balance
         //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(2000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
         //await this.sequencer.sendTx(() => {return this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))},Text.ACCOUNT_TO_UTXO)
-        //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(1000),'EUROC')},Text.SWAP)
+        //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(10),'DUSD')},Text.SWAP)
         //await this.sequencer.addPoolLiquidity('EUROC','DFI',new BigNumber(2000))
         //Task: Collect crypto dust and reinvest in pool
         //----------------------------------------------
         //1) Swap Crypto dust to Token A
-        await this.sequencer.collectCryptoDust(['EUROC', 'DUSD'], [new bignumber_js_1.BigNumber(0.0001), new bignumber_js_1.BigNumber(0.0001)], 'DFI', text_json_1.default.COLLECT_CRYPTO_DUST);
+        //await this.sequencer.collectCryptoDust(['EUROC','DUSD'],[new BigNumber(0.0001),new BigNumber(0.0001)],'DFI',Text.COLLECT_CRYPTO_DUST)
         //2) Swap 50% of DFI to Token B
+        //await this.sequencer.swapTokenToAddPoolLiquidity('DFI','DUSD',new BigNumber(100))
+        await this.sequencer.addPoolLiquidity('DFI', 'DUSD', new bignumber_js_1.BigNumber(100));
         //3) Add Token A and Token B to Pool
     }
 }

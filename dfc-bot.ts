@@ -1,8 +1,8 @@
 import * as Helper from './helper'
 import Text from './text.json'
 import Parameter from './parameter.json'
-import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
-//import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
+//import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
+import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
 import { MainNet, Network, TestNet } from '@defichain/jellyfish-network'
 import { WhaleApiClient } from '@defichain/whale-api-client'
 import { JellyfishWallet, WalletHdNode } from '@defichain/jellyfish-wallet'
@@ -60,14 +60,16 @@ export class Bot{
     console.log(Helper.getISODate() + ' ' + Text.TOKEN_BALANCE + ': ' + await this.sequencer.transaction.getTokenBalance('DFI',new BigNumber(0))) //Output token balance
     //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(2000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
     //await this.sequencer.sendTx(() => {return this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))},Text.ACCOUNT_TO_UTXO)
-    //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(1000),'EUROC')},Text.SWAP)
+    //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(10),'DUSD')},Text.SWAP)
     //await this.sequencer.addPoolLiquidity('EUROC','DFI',new BigNumber(2000))
 
     //Task: Collect crypto dust and reinvest in pool
     //----------------------------------------------
-    //1) Swap Crypto dust to Token A
-    await this.sequencer.collectCryptoDust(['EUROC','DUSD'],[new BigNumber(0.0001),new BigNumber(0.0001)],'DFI',Text.COLLECT_CRYPTO_DUST)
-    //2) Swap 50% of DFI to Token B
-    //3) Add Token A and Token B to Pool
+    //2) Swap Crypto dust to Token A
+    //await this.sequencer.collectCryptoDust(['EUROC','DUSD'],[new BigNumber(0.0001),new BigNumber(0.0001)],'DFI',Text.COLLECT_CRYPTO_DUST)
+    //3) Swap 50% of DFI to Token B & Add Token A and Token B to Pool
+    //await this.sequencer.swapTokenToAddPoolLiquidity('DFI','DUSD',new BigNumber(100))
+    //await this.sequencer.addPoolLiquidity('DFI','DUSD',new BigNumber(100))
+
   }
 }

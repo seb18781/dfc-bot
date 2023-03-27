@@ -64,7 +64,7 @@ class Sequencer {
         }
     }
     /**
-     * Adds liquidity to a pool
+     * Adds liquidity to a pool without a swap
      * @param tokenASymbol Token A symbol
      * @param tokenBSymbol Token A symbol
      * @param tokenAAmount Amount ofToken A to add to Pool (if amount > balance --> maxmimum balance is added to pool)
@@ -77,7 +77,7 @@ class Sequencer {
         if (tokenAAmount.toNumber() > tokenABalance.toNumber()) {
             tokenAAmount = tokenABalance;
         }
-        let poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol);
+        const poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol);
         if (tokenASymbol === poolData.tokenA.symbol) {
             tokenBAmount = new bignumber_js_1.BigNumber(tokenAAmount.toNumber() * Number(poolData.priceRatio.ba));
             console.log(tokenAAmount + ' ' + tokenBAmount);
@@ -96,8 +96,6 @@ class Sequencer {
                 tokenBAmount = tokenBBalance;
                 tokenAAmount = new bignumber_js_1.BigNumber(tokenBAmount.toNumber() * Number(poolData.priceRatio.ba));
             }
-            console.log(text_json_1.default.ADD_LIQUIDITY + ' ' + tokenBSymbol + '-' + tokenASymbol + ' with ' +
-                tokenBAmount + ' ' + tokenBSymbol + ' and ' + tokenAAmount + ' ' + tokenASymbol);
             return await this.sendTx(() => {
                 return this.transaction.addPoolLiquidity(tokenBSymbol, tokenBAmount, tokenASymbol, tokenAAmount);
             }, text_json_1.default.ADD_LIQUIDITY + ' ' + tokenBSymbol + '-' + tokenASymbol + ' with ' +
@@ -121,10 +119,40 @@ class Sequencer {
         for (let i = 0; i < dustTokenList.length; i++) {
             let dustToken = dustTokenList[i];
             if (Number(dustToken.amount) < Number(dustTokenMinBalance[i])) {
-                console.log(Helper.getISODate() + ' ' + text_json_1.default.NO_ENOUGH_BALANCE + ' of token ' + dustToken.symbol);
+                console.log(Helper.getISODate() + ' ' + text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + dustToken.symbol);
             }
             else if (dustToken.isDAT && Number(dustToken.amount) > dustTokenMinBalance[i].toNumber()) {
                 returnValue = returnValue && await this.sendTx(() => { return this.transaction.swapToken(dustToken.symbol, new bignumber_js_1.BigNumber(0.0001), outputTokenSymbol); }, text_json_1.default.SWAP + ' ' + dustToken.symbol + ' to ' + outputTokenSymbol);
+            }
+        }
+        return returnValue;
+    }
+    async swapTokenToAddPoolLiquidity(tokenASymbol, tokenBSymbol, tokenAAmount) {
+        let returnValue = true;
+        const tokenAData = (await this.transaction.getAddressTokenData([tokenASymbol]))[0];
+        const tokenBData = (await this.transaction.getAddressTokenData([tokenBSymbol]))[0];
+        if (tokenAAmount.toNumber() > Number(tokenAData.amount)) {
+            tokenAAmount = new bignumber_js_1.BigNumber(Number(tokenAData.amount));
+        }
+        const poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol);
+        if (tokenASymbol === poolData.tokenA.symbol) {
+            if (tokenAAmount.toNumber() * Number(poolData.priceRatio.ba) < Number(tokenBData.amount)) {
+                return returnValue;
+            }
+            else {
+                const tokenAAmountToSwap = (tokenAAmount.toNumber() - Number(tokenBData.amount) * Number(poolData.priceRatio.ab)) * 0.5;
+                //returnValue = returnValue && await this.sendTx(() => {return this.transaction.swapToken(tokenASymbol,new BigNumber(tokenAAmountToSwap.valueOf()),tokenBSymbol)},
+                //Text.SWAP + ' ' + tokenAAmountToSwap + ' ' + tokenASymbol + ' to ' + tokenBSymbol)
+            }
+        }
+        else if (tokenASymbol === poolData.tokenB.symbol) {
+            if (tokenAAmount.toNumber() * Number(poolData.priceRatio.ab) < Number(tokenBData.amount)) {
+                return returnValue;
+            }
+            else {
+                const tokenAAmountToSwap = (tokenAAmount.toNumber() - Number(tokenBData.amount) * Number(poolData.priceRatio.ba)) * 0.5;
+                //console.log(tokenAAmount.toNumber() + ' ' + Number(tokenBData.amount) + ' ' + Number(poolData.priceRatio.ba) + ' ' + tokenAAmountToSwap)
+                returnValue = returnValue && await this.sendTx(() => { return this.transaction.swapToken(tokenASymbol, new bignumber_js_1.BigNumber(tokenAAmountToSwap.valueOf()), tokenBSymbol); }, text_json_1.default.SWAP + ' ' + tokenAAmountToSwap + ' ' + tokenASymbol + ' to ' + tokenBSymbol);
             }
         }
         return returnValue;

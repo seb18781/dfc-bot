@@ -12,5 +12,5 @@
     "TRANSACTION_NOT_SENT": "transaction not sent",
     "COLLECT_CRYPTO_DUST": "collect crypto dust",
     "NO_CRYPTO_DUST_COLLECTED": "no crypto dust collected",
-    "NO_ENOUGH_BALANCE": "not enough balance"
+    "NOT_ENOUGH_BALANCE": "not enough balance"
 }
