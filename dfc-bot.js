@@ -74,20 +74,24 @@ class Bot {
         this.sequencer = new sequencer_1.Sequencer(this.transaction);
     }
     async run() {
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.UTXO_BALANCE + ': ' + await this.sequencer.transaction.getUTXOBalance()); //Output UTXO balance
-        console.log(Helper.getISODate() + ' ' + text_json_1.default.TOKEN_BALANCE + ': ' + await this.sequencer.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0))); //Output token balance
-        //await this.sequencer.sendTx(() => {return this.transaction.utxoToAccount(new BigNumber(2000),new BigNumber(0.1))},Text.UTXO_TO_ACCOUNT)
-        //await this.sequencer.sendTx(() => {return this.transaction.accountToUTXO(new BigNumber(500),new BigNumber(0))},Text.ACCOUNT_TO_UTXO)
-        //await this.sequencer.sendTx(() => {return this.transaction.swapToken('DFI',new BigNumber(10),'DUSD')},Text.SWAP)
-        //await this.sequencer.addPoolLiquidity('EUROC','DFI',new BigNumber(2000))
-        //Task: Collect crypto dust and reinvest in pool
-        //----------------------------------------------
-        //1) Swap Crypto dust to Token A
-        //await this.sequencer.collectCryptoDust(['EUROC','DUSD'],[new BigNumber(0.0001),new BigNumber(0.0001)],'DFI',Text.COLLECT_CRYPTO_DUST)
-        //2) Swap 50% of DFI to Token B
-        //await this.sequencer.swapTokenToAddPoolLiquidity('DFI','DUSD',new BigNumber(100))
-        await this.sequencer.addPoolLiquidity('DFI', 'DUSD', new bignumber_js_1.BigNumber(100));
-        //3) Add Token A and Token B to Pool
+        const task = async () => {
+            //Task: Collect crypto dust and reinvest in pool
+            //----------------------------------------------
+            console.log(Helper.getISODate() + ' ' + "<<<task started>>>");
+            //1) Check and recharge UTXO Balance
+            await this.sequencer.rechargeUTXOBalance(new bignumber_js_1.BigNumber(0.1), new bignumber_js_1.BigNumber(1));
+            //2) Swap UTXO to account
+            let utxoBalance = await this.sequencer.transaction.getUTXOBalance();
+            await this.sequencer.sendTx(() => { return this.transaction.utxoToAccount(utxoBalance, new bignumber_js_1.BigNumber(1)); }, text_json_1.default.UTXO_TO_ACCOUNT);
+            //3) Swap Crypto dust to Token A
+            await this.sequencer.collectCryptoDust(['EUROC'], [new bignumber_js_1.BigNumber(10)], 'DFI', text_json_1.default.COLLECT_CRYPTO_DUST);
+            //4) Swap 50% of DFI to Token B & Add Token A and Token B to Pool
+            await this.sequencer.swapTokenToAddPoolLiquidity('DFI', 'DUSD', new bignumber_js_1.BigNumber(10000), new bignumber_js_1.BigNumber(100), text_json_1.default.SWAP + ' DFI to DUSD');
+            let accountDFIBalance = await this.sequencer.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0));
+            await this.sequencer.addPoolLiquidity('DFI', 'DUSD', accountDFIBalance, new bignumber_js_1.BigNumber(45), text_json_1.default.ADD_LIQUIDITY + ' DFI-DUSD');
+            console.log(Helper.getISODate() + ' ' + "<<<task finished>>>");
+        };
+        let intervalID = setInterval(() => { task(); }, 600000);
     }
 }
 exports.Bot = Bot;

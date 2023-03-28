@@ -48,12 +48,19 @@ export class Sequencer {
      * @param tokenAAmount Amount ofToken A to add to Pool (if amount > balance --> maxmimum balance is added to pool)
      * @returns Transaction sent
      */
-    public async addPoolLiquidity(tokenASymbol: string, tokenBSymbol: string, tokenAAmount: BigNumber): Promise<boolean> {
+    public async addPoolLiquidity(tokenASymbol: string, tokenBSymbol: string, tokenAAmount: BigNumber, tokenAMinBalance: BigNumber, text: string = undefined): Promise<boolean> {
+        if (text !== undefined) {
+            console.log(Helper.getISODate() + ' ' + text)
+        }
         const tokenABalance = await this.transaction.getTokenBalance(tokenASymbol, new BigNumber(0))
         const tokenBBalance = await this.transaction.getTokenBalance(tokenBSymbol, new BigNumber(0))
         let tokenBAmount: BigNumber
         if (tokenAAmount.toNumber() > tokenABalance.toNumber()) {
             tokenAAmount = tokenABalance
+        }
+        if (tokenABalance.toNumber() < tokenAMinBalance.toNumber()){
+            console.log(Helper.getISODate() + ' ' + Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol)
+            return false
         }
         const poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol)
         if (tokenASymbol === poolData.tokenA.symbol) {
@@ -105,38 +112,53 @@ export class Sequencer {
                 console.log(Helper.getISODate() + ' ' + Text.NOT_ENOUGH_BALANCE + ' of token ' + dustToken.symbol)
             }
             else if (dustToken.isDAT && Number(dustToken.amount) > dustTokenMinBalance[i].toNumber()){
-                returnValue = returnValue && await this.sendTx(() => {return this.transaction.swapToken(dustToken.symbol,new BigNumber(0.0001),outputTokenSymbol)},
-                Text.SWAP + ' ' + dustToken.symbol + ' to ' + outputTokenSymbol)
+                const dustTokenAmount: BigNumber = new BigNumber(Number(dustToken.amount)-dustTokenMinBalance[i].toNumber())
+                returnValue = returnValue && await this.sendTx(() => {return this.transaction.swapToken(dustToken.symbol,dustTokenAmount,outputTokenSymbol)},
+                Text.SWAP + ' ' + dustTokenAmount + ' ' + dustToken.symbol + ' to ' + outputTokenSymbol)
             }
         }
         return returnValue
     }
 
-    public async swapTokenToAddPoolLiquidity(tokenASymbol: string, tokenBSymbol: string, tokenAAmount: BigNumber): Promise<boolean>{
+    public async swapTokenToAddPoolLiquidity(tokenASymbol: string, tokenBSymbol: string, tokenAAmount: BigNumber, tokenAMinBalance: BigNumber, text: string = undefined): Promise<boolean>{
+        if (text !== undefined) {
+            console.log(Helper.getISODate() + ' ' + text)
+        }
         let returnValue = true
-        const tokenAData: AddressToken = (await this.transaction.getAddressTokenData([tokenASymbol]))[0]
-        const tokenBData: AddressToken = (await this.transaction.getAddressTokenData([tokenBSymbol]))[0]
-        if (tokenAAmount.toNumber() > Number(tokenAData.amount)) {
-            tokenAAmount = new BigNumber(Number(tokenAData.amount))
+        let tokenABalance: Number = 0
+        const tokenAData: AddressToken[] = await this.transaction.getAddressTokenData([tokenASymbol])
+        if (tokenAData !== undefined){
+            tokenABalance = Number(tokenAData[0].amount)
+        }
+        let tokenBBalance: Number = 0
+        const tokenBData: AddressToken[] = await this.transaction.getAddressTokenData([tokenBSymbol])
+        if (tokenBData !== undefined){
+            tokenBBalance = Number(tokenBData[0].amount)
+        }
+        if (tokenABalance < tokenAMinBalance.toNumber()){
+            console.log(Helper.getISODate() + ' ' + Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol)
+            return false
+        }
+        if (tokenAAmount.toNumber() > Number(tokenABalance)) {
+            tokenAAmount = new BigNumber(Number(tokenABalance))
         }
         const poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol)
         if (tokenASymbol === poolData.tokenA.symbol){
-            if (tokenAAmount.toNumber() * Number(poolData.priceRatio.ba) < Number(tokenBData.amount)){
+            if (tokenAAmount.toNumber() * Number(poolData.priceRatio.ba) < Number(tokenBBalance)){
                 return returnValue
             }
             else {
-                const tokenAAmountToSwap: Number = (tokenAAmount.toNumber() - Number(tokenBData.amount) * Number(poolData.priceRatio.ab)) * 0.5
-                //returnValue = returnValue && await this.sendTx(() => {return this.transaction.swapToken(tokenASymbol,new BigNumber(tokenAAmountToSwap.valueOf()),tokenBSymbol)},
-                //Text.SWAP + ' ' + tokenAAmountToSwap + ' ' + tokenASymbol + ' to ' + tokenBSymbol)
+                const tokenAAmountToSwap: Number = (tokenAAmount.toNumber() - Number(tokenBBalance) * Number(poolData.priceRatio.ab)) * 0.5
+                returnValue = returnValue && await this.sendTx(() => {return this.transaction.swapToken(tokenASymbol,new BigNumber(tokenAAmountToSwap.valueOf()),tokenBSymbol)},
+                Text.SWAP + ' ' + tokenAAmountToSwap + ' ' + tokenASymbol + ' to ' + tokenBSymbol)
             }
         }
         else if (tokenASymbol === poolData.tokenB.symbol){
-            if (tokenAAmount.toNumber() * Number(poolData.priceRatio.ab) < Number(tokenBData.amount)){
+            if (tokenAAmount.toNumber() * Number(poolData.priceRatio.ab) < Number(tokenBBalance)){
                 return returnValue
             }
             else {
-                const tokenAAmountToSwap: Number = (tokenAAmount.toNumber() - Number(tokenBData.amount) * Number(poolData.priceRatio.ba)) * 0.5
-                //console.log(tokenAAmount.toNumber() + ' ' + Number(tokenBData.amount) + ' ' + Number(poolData.priceRatio.ba) + ' ' + tokenAAmountToSwap)
+                const tokenAAmountToSwap: Number = (tokenAAmount.toNumber() - Number(tokenBBalance) * Number(poolData.priceRatio.ba)) * 0.5
                 returnValue = returnValue && await this.sendTx(() => {return this.transaction.swapToken(tokenASymbol,new BigNumber(tokenAAmountToSwap.valueOf()),tokenBSymbol)},
                 Text.SWAP + ' ' + tokenAAmountToSwap + ' ' + tokenASymbol + ' to ' + tokenBSymbol)
             }
@@ -144,4 +166,19 @@ export class Sequencer {
         return returnValue
     }
 
+    public async rechargeUTXOBalance(lowerLimit: BigNumber = new BigNumber(0.1), upperLimit: BigNumber = new BigNumber(1)): Promise<boolean>{
+        let returnValue = true
+        const UTXOBalance: BigNumber = await this.transaction.getUTXOBalance()
+        let rechargeValue: BigNumber = new BigNumber(0)
+        if (UTXOBalance.toNumber() < lowerLimit.toNumber()){
+            rechargeValue = BigNumber(upperLimit.toNumber() - UTXOBalance.toNumber())
+            returnValue = returnValue && await this.sendTx(() => {return this.transaction.accountToUTXO(rechargeValue,new BigNumber(0))},
+            Text.RECHARGE_UTXO + ' with ' + rechargeValue.toNumber().toString() + ' DFI')
+        }
+        else{
+            console.log(Helper.getISODate() + ' ' + Text.UTXO_BALANCED_VERIFIED + '; ' + Text.UTXO_BALANCE + ': '
+             + UTXOBalance.toNumber().toString() + ' DFI')
+        }
+        return returnValue
+    }
 }

@@ -32,13 +32,16 @@ export class Transaction {
    */
   public async getTokenBalance(symbol: string,minBalance: BigNumber): Promise<BigNumber | undefined> {
     const tokenList: AddressToken[] = await this.getAddressTokenData([symbol])
-    const token: AddressToken = tokenList.find((token) => {
-      return (
-        token.isDAT &&
-        token.symbol === symbol &&
-        new BigNumber(token.amount).gte(minBalance)
-      );
-    });
+    let token: AddressToken = undefined
+    if (tokenList !== undefined){
+      token = tokenList.find((token) => {
+        return (
+          token.isDAT &&
+          token.symbol === symbol &&
+          new BigNumber(token.amount).gte(minBalance)
+        );
+      });
+    }
     if (token === undefined) {
       return undefined;
     } else {
@@ -52,24 +55,16 @@ export class Transaction {
    * @param minBalance minimum of native which should be left as UTXO balance
    * @returns Transaction ID
    */
-  public async utxoToAccount(
-    amount: BigNumber,
-    minBalance: BigNumber
-  ): Promise<string | undefined> {
+  public async utxoToAccount(amount: BigNumber, minBalance: BigNumber): Promise<string | undefined> {
     const saveHeaven: BigNumber = new BigNumber(0.1);
     const utxoBalance: BigNumber = await this.getUTXOBalance();
     if (
-      utxoBalance.lte(minBalance) ||
-      utxoBalance.lte(saveHeaven) ||
-      utxoBalance.lte(amount)
-    ) {
-      throw new Error("utxo balance too low");
+      utxoBalance.lte(minBalance) || utxoBalance.lte(saveHeaven)) {
+      return undefined;
     }
+    amount = new BigNumber(Math.min(amount.toNumber(),utxoBalance.toNumber()) - Math.max(minBalance.toNumber(),saveHeaven.toNumber()))
     const script = await this.wallet.get(0).getScript();
-    const txn = await this.wallet
-      .get(0)
-      .withTransactionBuilder()
-      .account.utxosToAccount(
+    const txn = await this.wallet.get(0).withTransactionBuilder().account.utxosToAccount(
         {
           to: [
             {
@@ -85,9 +80,7 @@ export class Transaction {
         },
         script
       );
-    const txid: string = await this.wallet
-      .get(0)
-      .client.rawtx.send({ hex: new CTransactionSegWit(txn).toHex() });
+    const txid: string = await this.wallet.get(0).client.rawtx.send({ hex: new CTransactionSegWit(txn).toHex() });
     return txid;
   }
 

@@ -27,11 +27,14 @@ class Transaction {
      */
     async getTokenBalance(symbol, minBalance) {
         const tokenList = await this.getAddressTokenData([symbol]);
-        const token = tokenList.find((token) => {
-            return (token.isDAT &&
-                token.symbol === symbol &&
-                new bignumber_js_1.BigNumber(token.amount).gte(minBalance));
-        });
+        let token = undefined;
+        if (tokenList !== undefined) {
+            token = tokenList.find((token) => {
+                return (token.isDAT &&
+                    token.symbol === symbol &&
+                    new bignumber_js_1.BigNumber(token.amount).gte(minBalance));
+            });
+        }
         if (token === undefined) {
             return undefined;
         }
@@ -48,16 +51,12 @@ class Transaction {
     async utxoToAccount(amount, minBalance) {
         const saveHeaven = new bignumber_js_1.BigNumber(0.1);
         const utxoBalance = await this.getUTXOBalance();
-        if (utxoBalance.lte(minBalance) ||
-            utxoBalance.lte(saveHeaven) ||
-            utxoBalance.lte(amount)) {
-            throw new Error("utxo balance too low");
+        if (utxoBalance.lte(minBalance) || utxoBalance.lte(saveHeaven)) {
+            return undefined;
         }
+        amount = new bignumber_js_1.BigNumber(Math.min(amount.toNumber(), utxoBalance.toNumber()) - Math.max(minBalance.toNumber(), saveHeaven.toNumber()));
         const script = await this.wallet.get(0).getScript();
-        const txn = await this.wallet
-            .get(0)
-            .withTransactionBuilder()
-            .account.utxosToAccount({
+        const txn = await this.wallet.get(0).withTransactionBuilder().account.utxosToAccount({
             to: [
                 {
                     script,
@@ -70,9 +69,7 @@ class Transaction {
                 },
             ],
         }, script);
-        const txid = await this.wallet
-            .get(0)
-            .client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
+        const txid = await this.wallet.get(0).client.rawtx.send({ hex: new jellyfish_transaction_1.CTransactionSegWit(txn).toHex() });
         return txid;
     }
     /**
