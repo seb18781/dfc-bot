@@ -1,8 +1,8 @@
 import * as Helper from './helper'
 import Text from './text.json'
 import Parameter from './parameter.json'
-//import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
-import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
+import * as Settings from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-settings/settings.json'
+//import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
 import { MainNet, Network, TestNet } from '@defichain/jellyfish-network'
 import { WhaleApiClient } from '@defichain/whale-api-client'
 import { JellyfishWallet, WalletHdNode } from '@defichain/jellyfish-wallet'
@@ -11,7 +11,6 @@ import { WhaleWalletAccount, WhaleWalletAccountProvider } from '@defichain/whale
 import { Transaction } from './transaction'
 import { Sequencer } from './sequencer'
 import { BigNumber } from 'bignumber.js'
-import { AddressToken } from '@defichain/whale-api-client/dist/api/address'
 
 if (require.main === module) {
   main();
@@ -19,7 +18,7 @@ if (require.main === module) {
 
 export async function main(): Promise<void> {
   await Helper.delay(100) //initialisation time
-  await console.log(Helper.getISODate() + ' ' + Text.BOT_VERSION + ': ' + Parameter.VERSION)
+  console.log(Helper.getISODate() + ' ' + Text.BOT_VERSION + ': ' + Parameter.VERSION)
   const network: Network = TestNet
 
   const client = new WhaleApiClient({
@@ -27,11 +26,11 @@ export async function main(): Promise<void> {
     version: 'v0',
     network: network.name
   })
-  const wallet = new JellyfishWallet(MnemonicHdNodeProvider.fromWords(Mnemonic.MNEMONIC,
+  const wallet = new JellyfishWallet(MnemonicHdNodeProvider.fromWords(Settings.MNEMONIC,
     bip32Options(network)),
     new WhaleWalletAccountProvider(client, network))
   
-  await console.log(Helper.getISODate() + ' ' + Text.ADDRESS + ': ' + await wallet.get(0).getAddress())
+  console.log(Helper.getISODate() + ' ' + Text.ADDRESS + ': ' + await wallet.get(0).getAddress())
   const bot = new Bot(wallet)
   await bot.run()
 }
@@ -75,5 +74,10 @@ export class Bot{
     }
 
     let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
+
+    //let key = Helper.hash256('foo')
+    //let encrypted = Helper.encrypt('Hallo', key, Settings.INITIALIZATION_VECTOR)
+    //console.log(encrypted)
+    //console.log(Helper.decrypt(encrypted, key, Settings.INITIALIZATION_VECTOR))
   }
 }

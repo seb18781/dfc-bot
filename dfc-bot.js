@@ -30,8 +30,8 @@ exports.Bot = exports.bip32Options = exports.main = void 0;
 const Helper = __importStar(require("./helper"));
 const text_json_1 = __importDefault(require("./text.json"));
 const parameter_json_1 = __importDefault(require("./parameter.json"));
-//import Mnemonic from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-mnemonic/mnemonic.json'
-const mnemonic_json_1 = __importDefault(require("C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json"));
+const Settings = __importStar(require("c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-settings/settings.json"));
+//import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
 const jellyfish_network_1 = require("@defichain/jellyfish-network");
 const whale_api_client_1 = require("@defichain/whale-api-client");
 const jellyfish_wallet_1 = require("@defichain/jellyfish-wallet");
@@ -45,15 +45,15 @@ if (require.main === module) {
 }
 async function main() {
     await Helper.delay(100); //initialisation time
-    await console.log(Helper.getISODate() + ' ' + text_json_1.default.BOT_VERSION + ': ' + parameter_json_1.default.VERSION);
+    console.log(Helper.getISODate() + ' ' + text_json_1.default.BOT_VERSION + ': ' + parameter_json_1.default.VERSION);
     const network = jellyfish_network_1.TestNet;
     const client = new whale_api_client_1.WhaleApiClient({
         url: parameter_json_1.default.OCEAN_URL[0],
         version: 'v0',
         network: network.name
     });
-    const wallet = new jellyfish_wallet_1.JellyfishWallet(jellyfish_wallet_mnemonic_1.MnemonicHdNodeProvider.fromWords(mnemonic_json_1.default.MNEMONIC, bip32Options(network)), new whale_api_wallet_1.WhaleWalletAccountProvider(client, network));
-    await console.log(Helper.getISODate() + ' ' + text_json_1.default.ADDRESS + ': ' + await wallet.get(0).getAddress());
+    const wallet = new jellyfish_wallet_1.JellyfishWallet(jellyfish_wallet_mnemonic_1.MnemonicHdNodeProvider.fromWords(Settings.MNEMONIC, bip32Options(network)), new whale_api_wallet_1.WhaleWalletAccountProvider(client, network));
+    console.log(Helper.getISODate() + ' ' + text_json_1.default.ADDRESS + ': ' + await wallet.get(0).getAddress());
     const bot = new Bot(wallet);
     await bot.run();
 }
@@ -91,7 +91,11 @@ class Bot {
             await this.sequencer.addPoolLiquidity('DFI', 'DUSD', accountDFIBalance, new bignumber_js_1.BigNumber(45), text_json_1.default.ADD_LIQUIDITY + ' DFI-DUSD');
             console.log(Helper.getISODate() + ' ' + "<<<task finished>>>");
         };
-        let intervalID = setInterval(() => { task(); }, 600000);
+        //let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
+        let key = Helper.hash256('foo');
+        let encrypted = Helper.encrypt('Hallo', key, Settings.INITIALIZATION_VECTOR);
+        console.log(encrypted);
+        console.log(Helper.decrypt(encrypted, key, Settings.INITIALIZATION_VECTOR));
     }
 }
 exports.Bot = Bot;

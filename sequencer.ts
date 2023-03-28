@@ -125,12 +125,12 @@ export class Sequencer {
             console.log(Helper.getISODate() + ' ' + text)
         }
         let returnValue = true
-        let tokenABalance: Number = 0
+        let tokenABalance: number = 0
         const tokenAData: AddressToken[] = await this.transaction.getAddressTokenData([tokenASymbol])
         if (tokenAData !== undefined){
             tokenABalance = Number(tokenAData[0].amount)
         }
-        let tokenBBalance: Number = 0
+        let tokenBBalance: number = 0
         const tokenBData: AddressToken[] = await this.transaction.getAddressTokenData([tokenBSymbol])
         if (tokenBData !== undefined){
             tokenBBalance = Number(tokenBData[0].amount)
