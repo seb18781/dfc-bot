@@ -1,35 +1,12 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Sequencer = void 0;
 const text_json_1 = __importDefault(require("./text.json"));
-const Helper = __importStar(require("./helper"));
 const bignumber_js_1 = require("bignumber.js");
+const parameter_json_1 = __importDefault(require("./parameter.json"));
 /**
  * Aims to provide common used subsequences or sequence related logics
  */
@@ -46,19 +23,19 @@ class Sequencer {
     async sendTx(transaction, text = undefined) {
         let txid = await transaction();
         if (text !== undefined) {
-            console.log(Helper.getISODate() + ' ' + text);
+            console.log(text);
         }
         if (txid === undefined) {
-            console.log(Helper.getISODate() + ' ' + text_json_1.default.TRANSACTION_NOT_SENT + ': ' + txid);
+            console.log(text_json_1.default.TRANSACTION_NOT_SENT);
             return false;
         }
         else {
             if (await this.transaction.waitForTx(txid)) {
-                console.log(Helper.getISODate() + ' ' + text_json_1.default.TRANSACTION_SENT + ': ' + txid);
+                console.log(text_json_1.default.TRANSACTION_SENT + ': ' + console.log(text_json_1.default.ADDRESS + ': ' + text_json_1.default.DEFISCAN_URL + text_json_1.default.DEFISCAN_TRANSACTIONS + txid + text_json_1.default.DEFISCAN_NETWORK + parameter_json_1.default.NETWORK));
                 return true;
             }
             else {
-                console.log(Helper.getISODate() + ' ' + text_json_1.default.TRANSACTION_NOT_SENT + ': ' + txid);
+                console.log(text_json_1.default.TRANSACTION_NOT_SENT);
                 return false;
             }
         }
@@ -72,7 +49,7 @@ class Sequencer {
      */
     async addPoolLiquidity(tokenASymbol, tokenBSymbol, tokenAAmount, tokenAMinBalance, text = undefined) {
         if (text !== undefined) {
-            console.log(Helper.getISODate() + ' ' + text);
+            console.log(text);
         }
         const tokenABalance = await this.transaction.getTokenBalance(tokenASymbol, new bignumber_js_1.BigNumber(0));
         const tokenBBalance = await this.transaction.getTokenBalance(tokenBSymbol, new bignumber_js_1.BigNumber(0));
@@ -81,7 +58,7 @@ class Sequencer {
             tokenAAmount = tokenABalance;
         }
         if (tokenABalance.toNumber() < tokenAMinBalance.toNumber()) {
-            console.log(Helper.getISODate() + ' ' + text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol);
+            console.log(text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol);
             return false;
         }
         const poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol);
@@ -115,21 +92,21 @@ class Sequencer {
     async collectCryptoDust(dustTokenSymbols, dustTokenMinBalance, outputTokenSymbol, text = undefined) {
         let returnValue = true;
         if (text !== undefined) {
-            console.log(Helper.getISODate() + ' ' + text);
+            console.log(text);
         }
         const dustTokenList = await this.transaction.getAddressTokenData(dustTokenSymbols);
         if (dustTokenList === undefined) {
-            console.log(Helper.getISODate() + ' ' + text_json_1.default.NO_CRYPTO_DUST_COLLECTED);
+            console.log(text_json_1.default.NO_CRYPTO_DUST_COLLECTED);
             returnValue = false;
             return returnValue;
         }
         for (let i = 0; i < dustTokenList.length; i++) {
             let dustToken = dustTokenList[i];
             if (Number(dustToken.amount) < Number(dustTokenMinBalance[i])) {
-                console.log(Helper.getISODate() + ' ' + text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + dustToken.symbol);
+                console.log(text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + dustToken.symbol);
             }
-            else if (dustToken.isDAT && Number(dustToken.amount) > dustTokenMinBalance[i].toNumber()) {
-                const dustTokenAmount = new bignumber_js_1.BigNumber(Number(dustToken.amount) - dustTokenMinBalance[i].toNumber());
+            else if (dustToken.isDAT && Number(dustToken.amount) > Number(dustTokenMinBalance[i])) {
+                const dustTokenAmount = new bignumber_js_1.BigNumber(Number(dustToken.amount) - Number(dustTokenMinBalance[i]));
                 returnValue = returnValue && await this.sendTx(() => { return this.transaction.swapToken(dustToken.symbol, dustTokenAmount, outputTokenSymbol); }, text_json_1.default.SWAP + ' ' + dustTokenAmount + ' ' + dustToken.symbol + ' to ' + outputTokenSymbol);
             }
         }
@@ -137,7 +114,7 @@ class Sequencer {
     }
     async swapTokenToAddPoolLiquidity(tokenASymbol, tokenBSymbol, tokenAAmount, tokenAMinBalance, text = undefined) {
         if (text !== undefined) {
-            console.log(Helper.getISODate() + ' ' + text);
+            console.log(text);
         }
         let returnValue = true;
         let tokenABalance = 0;
@@ -151,7 +128,7 @@ class Sequencer {
             tokenBBalance = Number(tokenBData[0].amount);
         }
         if (tokenABalance < tokenAMinBalance.toNumber()) {
-            console.log(Helper.getISODate() + ' ' + text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol);
+            console.log(text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol);
             return false;
         }
         if (tokenAAmount.toNumber() > Number(tokenABalance)) {
@@ -187,7 +164,7 @@ class Sequencer {
             returnValue = returnValue && await this.sendTx(() => { return this.transaction.accountToUTXO(rechargeValue, new bignumber_js_1.BigNumber(0)); }, text_json_1.default.RECHARGE_UTXO + ' with ' + rechargeValue.toNumber().toString() + ' DFI');
         }
         else {
-            console.log(Helper.getISODate() + ' ' + text_json_1.default.UTXO_BALANCED_VERIFIED + '; ' + text_json_1.default.UTXO_BALANCE + ': '
+            console.log(text_json_1.default.UTXO_BALANCED_VERIFIED + '; ' + text_json_1.default.UTXO_BALANCE + ': '
                 + UTXOBalance.toNumber().toString() + ' DFI');
         }
         return returnValue;

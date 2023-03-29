@@ -16,3 +16,6 @@ https://ocean.defichain.com/v0/mainnet/tokens?size=200
 
 # Get Pool ID
 https://ocean.defichain.com/v0/mainnet/poolpairs?size=200
+
+# Package Telegraf
+If you have problems with Telegraf, try the following: npm i github:telegraf/telegraf

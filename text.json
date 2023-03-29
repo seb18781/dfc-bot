@@ -14,5 +14,11 @@
     "NO_CRYPTO_DUST_COLLECTED": "no crypto dust collected",
     "NOT_ENOUGH_BALANCE": "not enough balance",
     "RECHARGE_UTXO": "recharge utxo",
-    "UTXO_BALANCED_VERIFIED": "utxo balanced verified"
+    "UTXO_BALANCED_VERIFIED": "utxo balanced verified",
+    "UTXO_BELOW_MINIMUM_BALANCE_NO_TRANSFER_TO_ACCOUNT": "utxo below minimum balance, no transfer to account initiated ",
+    "DEFISCAN_URL": "https://defiscan.live",
+    "DEFISCAN_ADDRESS": "/address/",
+    "DEFISCAN_TRANSACTIONS": "/transactions/",
+    "DEFISCAN_NETWORK": "?network="
+
 }

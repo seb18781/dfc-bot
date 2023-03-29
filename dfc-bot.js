@@ -40,12 +40,19 @@ const whale_api_wallet_1 = require("@defichain/whale-api-wallet");
 const transaction_1 = require("./transaction");
 const sequencer_1 = require("./sequencer");
 const bignumber_js_1 = require("bignumber.js");
+const telegraf_1 = require("telegraf");
 if (require.main === module) {
     main();
 }
 async function main() {
     await Helper.delay(100); //initialisation time
-    console.log(Helper.getISODate() + ' ' + text_json_1.default.BOT_VERSION + ': ' + parameter_json_1.default.VERSION);
+    const telegramBot = new telegraf_1.Telegraf(Settings.T_TOKEN);
+    var oldConsole = Object.assign({}, console);
+    console.log = function (msg) {
+        telegramBot.telegram.sendMessage(Settings.T_CHAT_ID, msg);
+        oldConsole.log(Helper.getISODate() + ' ' + msg);
+    };
+    console.log(text_json_1.default.BOT_VERSION + ': ' + parameter_json_1.default.VERSION);
     const network = jellyfish_network_1.TestNet;
     const client = new whale_api_client_1.WhaleApiClient({
         url: parameter_json_1.default.OCEAN_URL[0],
@@ -53,7 +60,7 @@ async function main() {
         network: network.name
     });
     const wallet = new jellyfish_wallet_1.JellyfishWallet(jellyfish_wallet_mnemonic_1.MnemonicHdNodeProvider.fromWords(Helper.decryptMnemonic(Settings.M_ENCRYPTED, 24, Helper.hash256(Settings.M_KEY), Settings.INITIALIZATION_VECTOR), bip32Options(network)), new whale_api_wallet_1.WhaleWalletAccountProvider(client, network));
-    console.log(Helper.getISODate() + ' ' + text_json_1.default.ADDRESS + ': ' + await wallet.get(0).getAddress());
+    console.log(text_json_1.default.ADDRESS + ': ' + text_json_1.default.DEFISCAN_URL + text_json_1.default.DEFISCAN_ADDRESS + await wallet.get(0).getAddress() + text_json_1.default.DEFISCAN_NETWORK + parameter_json_1.default.NETWORK);
     const bot = new Bot(wallet);
     await bot.run();
 }
@@ -74,24 +81,24 @@ class Bot {
         this.sequencer = new sequencer_1.Sequencer(this.transaction);
     }
     async run() {
-        const task = async () => {
-            //Task: Collect crypto dust and reinvest in pool
-            //----------------------------------------------
-            console.log(Helper.getISODate() + ' ' + "<<<task started>>>");
-            //1) Check and recharge UTXO Balance
-            await this.sequencer.rechargeUTXOBalance(new bignumber_js_1.BigNumber(0.1), new bignumber_js_1.BigNumber(1));
-            //2) Swap UTXO to account
-            let utxoBalance = await this.sequencer.transaction.getUTXOBalance();
-            await this.sequencer.sendTx(() => { return this.transaction.utxoToAccount(utxoBalance, new bignumber_js_1.BigNumber(1)); }, text_json_1.default.UTXO_TO_ACCOUNT);
-            //3) Swap Crypto dust to Token A
-            await this.sequencer.collectCryptoDust(['EUROC'], [new bignumber_js_1.BigNumber(10)], 'DFI', text_json_1.default.COLLECT_CRYPTO_DUST);
-            //4) Swap 50% of DFI to Token B & Add Token A and Token B to Pool
-            await this.sequencer.swapTokenToAddPoolLiquidity('DFI', 'DUSD', new bignumber_js_1.BigNumber(10000), new bignumber_js_1.BigNumber(100), text_json_1.default.SWAP + ' DFI to DUSD');
-            let accountDFIBalance = await this.sequencer.transaction.getTokenBalance('DFI', new bignumber_js_1.BigNumber(0));
-            await this.sequencer.addPoolLiquidity('DFI', 'DUSD', accountDFIBalance, new bignumber_js_1.BigNumber(45), text_json_1.default.ADD_LIQUIDITY + ' DFI-DUSD');
-            console.log(Helper.getISODate() + ' ' + "<<<task finished>>>");
-        };
-        //let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
+        //    const task = async () => {
+        //Task: Collect crypto dust and reinvest in pool
+        //----------------------------------------------
+        console.log("<<<task started>>>");
+        //1) Check and recharge UTXO Balance
+        await this.sequencer.rechargeUTXOBalance(new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_LL)), new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_UL)));
+        //2) Swap UTXO to account
+        let utxoBalance = await this.sequencer.transaction.getUTXOBalance();
+        await this.sequencer.sendTx(() => { return this.transaction.utxoToAccount(utxoBalance, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_UL))); }, text_json_1.default.UTXO_TO_ACCOUNT);
+        //3) Swap Crypto dust to Token A
+        await this.sequencer.collectCryptoDust(parameter_json_1.default.CRYPTO_DUST_SYMBOLS, parameter_json_1.default.CRYPTO_DUST_MIN_BALANCE, 'DFI', text_json_1.default.COLLECT_CRYPTO_DUST);
+        //4) Swap 50% of DFI to Token B & Add Token A and Token B to Pool
+        await this.sequencer.swapTokenToAddPoolLiquidity(parameter_json_1.default.LP_REINVEST_SYMBOL_A, parameter_json_1.default.LP_REINVEST_SYMBOL_B, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SWAP_A_TO_B_AMOUNT)), new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_A_MIN_BALANCE)), text_json_1.default.SWAP + ' ' + parameter_json_1.default.LP_REINVEST_SYMBOL_A + ' to ' + parameter_json_1.default.LP_REINVEST_SYMBOL_B);
+        let TokenABalance = await this.sequencer.transaction.getTokenBalance(parameter_json_1.default.LP_REINVEST_SYMBOL_A, new bignumber_js_1.BigNumber(0));
+        await this.sequencer.addPoolLiquidity(parameter_json_1.default.LP_REINVEST_SYMBOL_A, parameter_json_1.default.LP_REINVEST_SYMBOL_B, TokenABalance, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_A_MIN_BALANCE) * 0.45), text_json_1.default.ADD_LIQUIDITY + ' ' + parameter_json_1.default.LP_REINVEST_SYMBOL_A + '-' + parameter_json_1.default.LP_REINVEST_SYMBOL_B);
+        console.log("<<<task finished>>>");
+        //    }
+        //    let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
     }
 }
 exports.Bot = Bot;

@@ -3,6 +3,7 @@ import { Transaction } from './transaction'
 import * as Helper from './helper'
 import { BigNumber } from "bignumber.js";
 import { AddressToken } from "@defichain/whale-api-client/dist/api/address";
+import Parameter from './parameter.json'
 
 /**
  * Aims to provide common used subsequences or sequence related logics
@@ -22,19 +23,19 @@ export class Sequencer {
     public async sendTx(transaction: () => Promise<string>, text: string = undefined): Promise<boolean> {
         let txid = await transaction()
         if (text !== undefined) {
-            console.log(Helper.getISODate() + ' ' + text)
+            console.log(text)
         }
         if (txid === undefined) {
-            console.log(Helper.getISODate() + ' ' + Text.TRANSACTION_NOT_SENT + ': ' + txid)
+            console.log(Text.TRANSACTION_NOT_SENT)
             return false
         }
         else {
             if (await this.transaction.waitForTx(txid)) {
-                console.log(Helper.getISODate() + ' ' + Text.TRANSACTION_SENT + ': ' + txid)
+                console.log(Text.TRANSACTION_SENT + ': ' + console.log(Text.ADDRESS + ': ' + Text.DEFISCAN_URL + Text.DEFISCAN_TRANSACTIONS + txid + Text.DEFISCAN_NETWORK + Parameter.NETWORK))
                 return true
             }
             else {
-                console.log(Helper.getISODate() + ' ' + Text.TRANSACTION_NOT_SENT + ': ' + txid)
+                console.log(Text.TRANSACTION_NOT_SENT)
                 return false
             }
         }
@@ -50,7 +51,7 @@ export class Sequencer {
      */
     public async addPoolLiquidity(tokenASymbol: string, tokenBSymbol: string, tokenAAmount: BigNumber, tokenAMinBalance: BigNumber, text: string = undefined): Promise<boolean> {
         if (text !== undefined) {
-            console.log(Helper.getISODate() + ' ' + text)
+            console.log(text)
         }
         const tokenABalance = await this.transaction.getTokenBalance(tokenASymbol, new BigNumber(0))
         const tokenBBalance = await this.transaction.getTokenBalance(tokenBSymbol, new BigNumber(0))
@@ -59,7 +60,7 @@ export class Sequencer {
             tokenAAmount = tokenABalance
         }
         if (tokenABalance.toNumber() < tokenAMinBalance.toNumber()){
-            console.log(Helper.getISODate() + ' ' + Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol)
+            console.log(Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol)
             return false
         }
         const poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol)
@@ -95,24 +96,24 @@ export class Sequencer {
         }
     }
 
-    public async collectCryptoDust(dustTokenSymbols: string[], dustTokenMinBalance: BigNumber[], outputTokenSymbol: string, text: string = undefined): Promise<boolean>{
+    public async collectCryptoDust(dustTokenSymbols: string[], dustTokenMinBalance: string[], outputTokenSymbol: string, text: string = undefined): Promise<boolean>{
         let returnValue = true
         if (text !== undefined) {
-            console.log(Helper.getISODate() + ' ' + text)
+            console.log(text)
         }
         const dustTokenList: AddressToken[] = await this.transaction.getAddressTokenData(dustTokenSymbols)
         if (dustTokenList === undefined){
-            console.log(Helper.getISODate() + ' ' + Text.NO_CRYPTO_DUST_COLLECTED)
+            console.log(Text.NO_CRYPTO_DUST_COLLECTED)
             returnValue = false
             return returnValue
         } 
         for (let i=0;i<dustTokenList.length;i++){
             let dustToken: AddressToken = dustTokenList[i]
             if (Number(dustToken.amount) < Number(dustTokenMinBalance[i])){
-                console.log(Helper.getISODate() + ' ' + Text.NOT_ENOUGH_BALANCE + ' of token ' + dustToken.symbol)
+                console.log(Text.NOT_ENOUGH_BALANCE + ' of token ' + dustToken.symbol)
             }
-            else if (dustToken.isDAT && Number(dustToken.amount) > dustTokenMinBalance[i].toNumber()){
-                const dustTokenAmount: BigNumber = new BigNumber(Number(dustToken.amount)-dustTokenMinBalance[i].toNumber())
+            else if (dustToken.isDAT && Number(dustToken.amount) > Number(dustTokenMinBalance[i])){
+                const dustTokenAmount: BigNumber = new BigNumber(Number(dustToken.amount)-Number(dustTokenMinBalance[i]))
                 returnValue = returnValue && await this.sendTx(() => {return this.transaction.swapToken(dustToken.symbol,dustTokenAmount,outputTokenSymbol)},
                 Text.SWAP + ' ' + dustTokenAmount + ' ' + dustToken.symbol + ' to ' + outputTokenSymbol)
             }
@@ -122,7 +123,7 @@ export class Sequencer {
 
     public async swapTokenToAddPoolLiquidity(tokenASymbol: string, tokenBSymbol: string, tokenAAmount: BigNumber, tokenAMinBalance: BigNumber, text: string = undefined): Promise<boolean>{
         if (text !== undefined) {
-            console.log(Helper.getISODate() + ' ' + text)
+            console.log(text)
         }
         let returnValue = true
         let tokenABalance: number = 0
@@ -136,7 +137,7 @@ export class Sequencer {
             tokenBBalance = Number(tokenBData[0].amount)
         }
         if (tokenABalance < tokenAMinBalance.toNumber()){
-            console.log(Helper.getISODate() + ' ' + Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol)
+            console.log(Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol)
             return false
         }
         if (tokenAAmount.toNumber() > Number(tokenABalance)) {
@@ -176,7 +177,7 @@ export class Sequencer {
             Text.RECHARGE_UTXO + ' with ' + rechargeValue.toNumber().toString() + ' DFI')
         }
         else{
-            console.log(Helper.getISODate() + ' ' + Text.UTXO_BALANCED_VERIFIED + '; ' + Text.UTXO_BALANCE + ': '
+            console.log(Text.UTXO_BALANCED_VERIFIED + '; ' + Text.UTXO_BALANCE + ': '
              + UTXOBalance.toNumber().toString() + ' DFI')
         }
         return returnValue
