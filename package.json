@@ -5,7 +5,8 @@
     "@defichain/jellyfish-wallet-mnemonic": "^3.30.0",
     "@defichain/whale-api-client": "^3.30.0",
     "@defichain/whale-api-wallet": "^3.30.0",
-    "big-number": "^2.0.0"
+    "big-number": "^2.0.0",
+    "telegraf": "^4.12.2"
   },
   "devDependencies": {
     "@types/node": "^18.15.3"

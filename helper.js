@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hash256 = exports.decrypt = exports.encrypt = exports.getISODate = exports.delay = void 0;
+exports.decryptMnemonic = exports.encryptMnemonic = exports.hash256 = exports.decrypt = exports.encrypt = exports.getISODate = exports.delay = void 0;
 const crypto_1 = __importStar(require("crypto"));
 function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -36,7 +36,7 @@ function getISODate() {
 exports.getISODate = getISODate;
 function encrypt(data, key, initialization_vector) {
     const cipher = crypto_1.default.createCipheriv('aes-256-cbc', key, initialization_vector);
-    let encrypted = cipher.update(data, 'utf8', 'base64');
+    let encrypted = cipher.update(data, 'utf8', 'base64').toString();
     encrypted += cipher.final('base64');
     return encrypted;
 }
@@ -51,3 +51,19 @@ function hash256(data) {
     return (0, crypto_1.createHash)('md5').update(data).digest('hex');
 }
 exports.hash256 = hash256;
+function encryptMnemonic(data, key, initialization_vector) {
+    let encrypted = undefined;
+    for (let idx = 0; idx < data.length; idx++) {
+        encrypted = encrypt(encrypted + '+++' + data[idx], key, initialization_vector);
+    }
+    return encrypted;
+}
+exports.encryptMnemonic = encryptMnemonic;
+function decryptMnemonic(data, length, key, initialization_vector) {
+    let decrypted = new Array(length);
+    for (let idx = 0; idx < length; idx++) {
+        [data, decrypted[length - 1 - idx]] = decrypt(data, key, initialization_vector).split('+++');
+    }
+    return decrypted;
+}
+exports.decryptMnemonic = decryptMnemonic;

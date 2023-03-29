@@ -1,8 +1,8 @@
 import * as Helper from './helper'
 import Text from './text.json'
 import Parameter from './parameter.json'
-import * as Settings from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-settings/settings.json'
-//import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
+//import * as Settings from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-settings/settings.json'
+import * as Settings from 'C:/Users/z001njsm/defichain/dfc-bot-settings/settings.json'
 import { MainNet, Network, TestNet } from '@defichain/jellyfish-network'
 import { WhaleApiClient } from '@defichain/whale-api-client'
 import { JellyfishWallet, WalletHdNode } from '@defichain/jellyfish-wallet'
@@ -26,9 +26,8 @@ export async function main(): Promise<void> {
     version: 'v0',
     network: network.name
   })
-  const wallet = new JellyfishWallet(MnemonicHdNodeProvider.fromWords(Settings.MNEMONIC,
-    bip32Options(network)),
-    new WhaleWalletAccountProvider(client, network))
+  const wallet = new JellyfishWallet(MnemonicHdNodeProvider.fromWords(Helper.decryptMnemonic(Settings.M_ENCRYPTED, 24, 
+    Helper.hash256(Settings.M_KEY), Settings.INITIALIZATION_VECTOR), bip32Options(network)), new WhaleWalletAccountProvider(client, network))
   
   console.log(Helper.getISODate() + ' ' + Text.ADDRESS + ': ' + await wallet.get(0).getAddress())
   const bot = new Bot(wallet)
@@ -73,11 +72,6 @@ export class Bot{
     console.log(Helper.getISODate() + ' ' + "<<<task finished>>>")
     }
 
-    let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
-
-    //let key = Helper.hash256('foo')
-    //let encrypted = Helper.encrypt('Hallo', key, Settings.INITIALIZATION_VECTOR)
-    //console.log(encrypted)
-    //console.log(Helper.decrypt(encrypted, key, Settings.INITIALIZATION_VECTOR))
+    //let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
   }
 }

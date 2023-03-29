@@ -30,8 +30,8 @@ exports.Bot = exports.bip32Options = exports.main = void 0;
 const Helper = __importStar(require("./helper"));
 const text_json_1 = __importDefault(require("./text.json"));
 const parameter_json_1 = __importDefault(require("./parameter.json"));
-const Settings = __importStar(require("c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-settings/settings.json"));
-//import Mnemonic from 'C:/Users/z001njsm/defichain/dfc-bot-mnemonics/mnemonic.json'
+//import * as Settings from 'c:/Users/Sebastian Behnisch/Workspace/Defichain/dfc-bot-settings/settings.json'
+const Settings = __importStar(require("C:/Users/z001njsm/defichain/dfc-bot-settings/settings.json"));
 const jellyfish_network_1 = require("@defichain/jellyfish-network");
 const whale_api_client_1 = require("@defichain/whale-api-client");
 const jellyfish_wallet_1 = require("@defichain/jellyfish-wallet");
@@ -52,7 +52,7 @@ async function main() {
         version: 'v0',
         network: network.name
     });
-    const wallet = new jellyfish_wallet_1.JellyfishWallet(jellyfish_wallet_mnemonic_1.MnemonicHdNodeProvider.fromWords(Settings.MNEMONIC, bip32Options(network)), new whale_api_wallet_1.WhaleWalletAccountProvider(client, network));
+    const wallet = new jellyfish_wallet_1.JellyfishWallet(jellyfish_wallet_mnemonic_1.MnemonicHdNodeProvider.fromWords(Helper.decryptMnemonic(Settings.M_ENCRYPTED, 24, Helper.hash256(Settings.M_KEY), Settings.INITIALIZATION_VECTOR), bip32Options(network)), new whale_api_wallet_1.WhaleWalletAccountProvider(client, network));
     console.log(Helper.getISODate() + ' ' + text_json_1.default.ADDRESS + ': ' + await wallet.get(0).getAddress());
     const bot = new Bot(wallet);
     await bot.run();
@@ -92,10 +92,6 @@ class Bot {
             console.log(Helper.getISODate() + ' ' + "<<<task finished>>>");
         };
         //let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
-        let key = Helper.hash256('foo');
-        let encrypted = Helper.encrypt('Hallo', key, Settings.INITIALIZATION_VECTOR);
-        console.log(encrypted);
-        console.log(Helper.decrypt(encrypted, key, Settings.INITIALIZATION_VECTOR));
     }
 }
 exports.Bot = Bot;
