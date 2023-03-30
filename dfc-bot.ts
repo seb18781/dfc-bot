@@ -1,7 +1,7 @@
 import * as Helper from './helper'
 import Text from './text.json'
 import Parameter from './parameter.json'
-import * as Settings from './dist/dfc-bot-settings/settings.json'
+import * as Settings from './settings/settings.json'
 import { MainNet, Network, TestNet } from '@defichain/jellyfish-network'
 import { WhaleApiClient } from '@defichain/whale-api-client'
 import { JellyfishWallet, WalletHdNode } from '@defichain/jellyfish-wallet'
