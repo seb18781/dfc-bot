@@ -9,7 +9,7 @@ If tsc does not run, input in admin mode: Set-ExecutionPolicy -ExecutionPolicy R
 tsc -p tsconfig.json;node dfc-bot.js
 
 # Installation
-- settings.json must be filled in correctly and stored separately
+- settings.json must be filled in correctly and stored separately in directory './dist/dfc-bot-settings/settings.json'
 - the encryptMnemonic and decryptMnemonic functions can be used to encrypt the mnemonic
 
 # Get DFI on Testnet
