@@ -1,6 +1,5 @@
 import Text from './text.json'
 import { Transaction } from './transaction'
-import * as Helper from './helper'
 import { BigNumber } from "bignumber.js";
 import { AddressToken } from "@defichain/whale-api-client/dist/api/address";
 import Parameter from './parameter.json'
