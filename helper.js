@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.decryptMnemonic = exports.encryptMnemonic = exports.hash256 = exports.decrypt = exports.encrypt = exports.getISODate = exports.delay = void 0;
+exports.messagingSpacer = exports.decryptMnemonic = exports.encryptMnemonic = exports.hash256 = exports.decrypt = exports.encrypt = exports.getISODate = exports.delay = void 0;
 const crypto_1 = __importStar(require("crypto"));
 function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -67,3 +67,9 @@ function decryptMnemonic(data, length, key, initialization_vector) {
     return decrypted;
 }
 exports.decryptMnemonic = decryptMnemonic;
+async function messagingSpacer(delay_in_ms, spacer) {
+    await delay(delay_in_ms);
+    console.log(spacer);
+    await delay(delay_in_ms);
+}
+exports.messagingSpacer = messagingSpacer;

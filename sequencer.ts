@@ -31,7 +31,7 @@ export class Sequencer {
         }
         else {
             if (await this.transaction.waitForTx(txid)) {
-                console.log(Text.TRANSACTION_SENT + ': ' + console.log(Text.ADDRESS + ': ' + Text.DEFISCAN_URL + Text.DEFISCAN_TRANSACTIONS + txid + Text.DEFISCAN_NETWORK + Parameter.NETWORK))
+                console.log(Text.TRANSACTION_SENT + ': ' + Text.ADDRESS + ': ' + Text.DEFISCAN_URL + Text.DEFISCAN_TRANSACTIONS + txid + Text.DEFISCAN_NETWORK + Parameter.NETWORK)
                 return true
             }
             else {
@@ -49,18 +49,31 @@ export class Sequencer {
      * @param tokenAAmount Amount ofToken A to add to Pool (if amount > balance --> maxmimum balance is added to pool)
      * @returns Transaction sent
      */
-    public async addPoolLiquidity(tokenASymbol: string, tokenBSymbol: string, tokenAAmount: BigNumber, tokenAMinBalance: BigNumber, text: string = undefined): Promise<boolean> {
+    public async addPoolLiquidity(tokenASymbol: string, tokenBSymbol: string, tokenAAmount: BigNumber,
+        tokenAMinBalance: BigNumber, tokenBMinBalance: BigNumber,text: string = undefined): Promise<boolean> {
         if (text !== undefined) {
             console.log(text)
         }
         const tokenABalance = await this.transaction.getTokenBalance(tokenASymbol, new BigNumber(0))
         const tokenBBalance = await this.transaction.getTokenBalance(tokenBSymbol, new BigNumber(0))
+        if (tokenABalance === undefined) {
+            console.log(Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol)
+            return false
+        }
+        if (tokenBBalance === undefined) {
+            console.log(Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenBSymbol)
+            return false
+        }
         let tokenBAmount: BigNumber
         if (tokenAAmount.toNumber() > tokenABalance.toNumber()) {
             tokenAAmount = tokenABalance
         }
         if (tokenABalance.toNumber() < tokenAMinBalance.toNumber()){
             console.log(Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol)
+            return false
+        }
+        if (tokenBBalance.toNumber() < tokenBMinBalance.toNumber()){
+            console.log(Text.NOT_ENOUGH_BALANCE + ' of token ' + tokenBSymbol)
             return false
         }
         const poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol)

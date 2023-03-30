@@ -31,7 +31,7 @@ class Sequencer {
         }
         else {
             if (await this.transaction.waitForTx(txid)) {
-                console.log(text_json_1.default.TRANSACTION_SENT + ': ' + console.log(text_json_1.default.ADDRESS + ': ' + text_json_1.default.DEFISCAN_URL + text_json_1.default.DEFISCAN_TRANSACTIONS + txid + text_json_1.default.DEFISCAN_NETWORK + parameter_json_1.default.NETWORK));
+                console.log(text_json_1.default.TRANSACTION_SENT + ': ' + text_json_1.default.ADDRESS + ': ' + text_json_1.default.DEFISCAN_URL + text_json_1.default.DEFISCAN_TRANSACTIONS + txid + text_json_1.default.DEFISCAN_NETWORK + parameter_json_1.default.NETWORK);
                 return true;
             }
             else {
@@ -47,18 +47,30 @@ class Sequencer {
      * @param tokenAAmount Amount ofToken A to add to Pool (if amount > balance --> maxmimum balance is added to pool)
      * @returns Transaction sent
      */
-    async addPoolLiquidity(tokenASymbol, tokenBSymbol, tokenAAmount, tokenAMinBalance, text = undefined) {
+    async addPoolLiquidity(tokenASymbol, tokenBSymbol, tokenAAmount, tokenAMinBalance, tokenBMinBalance, text = undefined) {
         if (text !== undefined) {
             console.log(text);
         }
         const tokenABalance = await this.transaction.getTokenBalance(tokenASymbol, new bignumber_js_1.BigNumber(0));
         const tokenBBalance = await this.transaction.getTokenBalance(tokenBSymbol, new bignumber_js_1.BigNumber(0));
+        if (tokenABalance === undefined) {
+            console.log(text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol);
+            return false;
+        }
+        if (tokenBBalance === undefined) {
+            console.log(text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + tokenBSymbol);
+            return false;
+        }
         let tokenBAmount;
         if (tokenAAmount.toNumber() > tokenABalance.toNumber()) {
             tokenAAmount = tokenABalance;
         }
         if (tokenABalance.toNumber() < tokenAMinBalance.toNumber()) {
             console.log(text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + tokenASymbol);
+            return false;
+        }
+        if (tokenBBalance.toNumber() < tokenBMinBalance.toNumber()) {
+            console.log(text_json_1.default.NOT_ENOUGH_BALANCE + ' of token ' + tokenBSymbol);
             return false;
         }
         const poolData = await this.transaction.getPoolData(tokenASymbol, tokenBSymbol);

@@ -49,9 +49,10 @@ async function main() {
     const telegramBot = new telegraf_1.Telegraf(Settings.T_TOKEN);
     var oldConsole = Object.assign({}, console);
     console.log = function (msg) {
-        telegramBot.telegram.sendMessage(Settings.T_CHAT_ID, msg);
+        telegramBot.telegram.sendMessage(Settings.T_CHAT_ID, '' + msg);
         oldConsole.log(Helper.getISODate() + ' ' + msg);
     };
+    await Helper.delay(2000);
     console.log(text_json_1.default.BOT_VERSION + ': ' + parameter_json_1.default.VERSION);
     const network = jellyfish_network_1.TestNet;
     const client = new whale_api_client_1.WhaleApiClient({
@@ -60,6 +61,7 @@ async function main() {
         network: network.name
     });
     const wallet = new jellyfish_wallet_1.JellyfishWallet(jellyfish_wallet_mnemonic_1.MnemonicHdNodeProvider.fromWords(Helper.decryptMnemonic(Settings.M_ENCRYPTED, 24, Helper.hash256(Settings.M_KEY), Settings.INITIALIZATION_VECTOR), bip32Options(network)), new whale_api_wallet_1.WhaleWalletAccountProvider(client, network));
+    await Helper.delay(2000);
     console.log(text_json_1.default.ADDRESS + ': ' + text_json_1.default.DEFISCAN_URL + text_json_1.default.DEFISCAN_ADDRESS + await wallet.get(0).getAddress() + text_json_1.default.DEFISCAN_NETWORK + parameter_json_1.default.NETWORK);
     const bot = new Bot(wallet);
     await bot.run();
@@ -84,19 +86,32 @@ class Bot {
         //    const task = async () => {
         //Task: Collect crypto dust and reinvest in pool
         //----------------------------------------------
-        console.log("<<<task started>>>");
+        await Helper.delay(2000);
+        console.log('<<< task started >>>');
         //1) Check and recharge UTXO Balance
+        await Helper.messagingSpacer(2000, "----------------------------------------");
         await this.sequencer.rechargeUTXOBalance(new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_LL)), new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_UL)));
         //2) Swap UTXO to account
+        await Helper.messagingSpacer(2000, "----------------------------------------");
         let utxoBalance = await this.sequencer.transaction.getUTXOBalance();
-        await this.sequencer.sendTx(() => { return this.transaction.utxoToAccount(utxoBalance, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_UL))); }, text_json_1.default.UTXO_TO_ACCOUNT);
+        if (utxoBalance.toNumber() > Number(parameter_json_1.default.UTXO_UL)) {
+            await this.sequencer.sendTx(() => { return this.transaction.utxoToAccount(utxoBalance, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_UL))); }, text_json_1.default.UTXO_TO_ACCOUNT);
+        }
+        else {
+            console.log(text_json_1.default.UTXO_BELOW_MINIMUM_BALANCE_NO_TRANSFER_TO_ACCOUNT);
+        }
         //3) Swap Crypto dust to Token A
+        await Helper.messagingSpacer(2000, "----------------------------------------");
         await this.sequencer.collectCryptoDust(parameter_json_1.default.CRYPTO_DUST_SYMBOLS, parameter_json_1.default.CRYPTO_DUST_MIN_BALANCE, 'DFI', text_json_1.default.COLLECT_CRYPTO_DUST);
-        //4) Swap 50% of DFI to Token B & Add Token A and Token B to Pool
-        await this.sequencer.swapTokenToAddPoolLiquidity(parameter_json_1.default.LP_REINVEST_SYMBOL_A, parameter_json_1.default.LP_REINVEST_SYMBOL_B, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SWAP_A_TO_B_AMOUNT)), new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_A_MIN_BALANCE)), text_json_1.default.SWAP + ' ' + parameter_json_1.default.LP_REINVEST_SYMBOL_A + ' to ' + parameter_json_1.default.LP_REINVEST_SYMBOL_B);
+        //4) Swap 50% of DFI to Token B
+        await Helper.messagingSpacer(2000, "----------------------------------------");
+        await this.sequencer.swapTokenToAddPoolLiquidity(parameter_json_1.default.LP_REINVEST_SYMBOL_A, parameter_json_1.default.LP_REINVEST_SYMBOL_B, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SWAP_A_TO_B_AMOUNT)), new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_A_SWAP_THRESHOLD)), text_json_1.default.SWAP + ' ' + parameter_json_1.default.LP_REINVEST_SYMBOL_A + ' to ' + parameter_json_1.default.LP_REINVEST_SYMBOL_B);
+        //5) Add Token A and Token B to Pool
+        await Helper.messagingSpacer(2000, "----------------------------------------");
         let TokenABalance = await this.sequencer.transaction.getTokenBalance(parameter_json_1.default.LP_REINVEST_SYMBOL_A, new bignumber_js_1.BigNumber(0));
-        await this.sequencer.addPoolLiquidity(parameter_json_1.default.LP_REINVEST_SYMBOL_A, parameter_json_1.default.LP_REINVEST_SYMBOL_B, TokenABalance, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_A_MIN_BALANCE) * 0.45), text_json_1.default.ADD_LIQUIDITY + ' ' + parameter_json_1.default.LP_REINVEST_SYMBOL_A + '-' + parameter_json_1.default.LP_REINVEST_SYMBOL_B);
-        console.log("<<<task finished>>>");
+        await this.sequencer.addPoolLiquidity(parameter_json_1.default.LP_REINVEST_SYMBOL_A, parameter_json_1.default.LP_REINVEST_SYMBOL_B, TokenABalance, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_A_ADD_LM_THRESHOLD)), new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_B_ADD_LM_THRESHOLD)), text_json_1.default.ADD_LIQUIDITY + ' ' + parameter_json_1.default.LP_REINVEST_SYMBOL_A + '-' + parameter_json_1.default.LP_REINVEST_SYMBOL_B);
+        await Helper.messagingSpacer(2000, "----------------------------------------");
+        console.log('<<< task finished >>>');
         //    }
         //    let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
     }
