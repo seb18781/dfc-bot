@@ -42,7 +42,7 @@ export function decryptMnemonic(data: string, length: number, key: string, initi
   return decrypted
 }
 
-export async function messagingSpacer(delay_in_ms: number, spacer: string){
+export async function taskSpacer(delay_in_ms: number, spacer: string){
   await delay(delay_in_ms)
   console.log(spacer)
   await delay(delay_in_ms)

@@ -54,7 +54,10 @@ async function main() {
     };
     await Helper.delay(2000);
     console.log(text_json_1.default.BOT_VERSION + ': ' + parameter_json_1.default.VERSION);
-    const network = jellyfish_network_1.TestNet;
+    var network = jellyfish_network_1.TestNet;
+    if (parameter_json_1.default.NETWORK === 'MainNet') {
+        network = jellyfish_network_1.MainNet;
+    }
     const client = new whale_api_client_1.WhaleApiClient({
         url: parameter_json_1.default.OCEAN_URL[0],
         version: 'v0',
@@ -89,10 +92,10 @@ class Bot {
         await Helper.delay(2000);
         console.log('<<< task started >>>');
         //1) Check and recharge UTXO Balance
-        await Helper.messagingSpacer(2000, "----------------------------------------");
+        await Helper.taskSpacer(2000, "--------------------------------------------------------------");
         await this.sequencer.rechargeUTXOBalance(new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_LL)), new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_UL)));
         //2) Swap UTXO to account
-        await Helper.messagingSpacer(2000, "----------------------------------------");
+        await Helper.taskSpacer(2000, "--------------------------------------------------------------");
         let utxoBalance = await this.sequencer.transaction.getUTXOBalance();
         if (utxoBalance.toNumber() > Number(parameter_json_1.default.UTXO_UL)) {
             await this.sequencer.sendTx(() => { return this.transaction.utxoToAccount(utxoBalance, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.UTXO_UL))); }, text_json_1.default.UTXO_TO_ACCOUNT);
@@ -101,16 +104,16 @@ class Bot {
             console.log(text_json_1.default.UTXO_BELOW_MINIMUM_BALANCE_NO_TRANSFER_TO_ACCOUNT);
         }
         //3) Swap Crypto dust to Token A
-        await Helper.messagingSpacer(2000, "----------------------------------------");
+        await Helper.taskSpacer(2000, "--------------------------------------------------------------");
         await this.sequencer.collectCryptoDust(parameter_json_1.default.CRYPTO_DUST_SYMBOLS, parameter_json_1.default.CRYPTO_DUST_MIN_BALANCE, 'DFI', text_json_1.default.COLLECT_CRYPTO_DUST);
         //4) Swap 50% of DFI to Token B
-        await Helper.messagingSpacer(2000, "----------------------------------------");
+        await Helper.taskSpacer(2000, "--------------------------------------------------------------");
         await this.sequencer.swapTokenToAddPoolLiquidity(parameter_json_1.default.LP_REINVEST_SYMBOL_A, parameter_json_1.default.LP_REINVEST_SYMBOL_B, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SWAP_A_TO_B_AMOUNT)), new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_A_SWAP_THRESHOLD)), text_json_1.default.SWAP + ' ' + parameter_json_1.default.LP_REINVEST_SYMBOL_A + ' to ' + parameter_json_1.default.LP_REINVEST_SYMBOL_B);
         //5) Add Token A and Token B to Pool
-        await Helper.messagingSpacer(2000, "----------------------------------------");
+        await Helper.taskSpacer(2000, "--------------------------------------------------------------");
         let TokenABalance = await this.sequencer.transaction.getTokenBalance(parameter_json_1.default.LP_REINVEST_SYMBOL_A, new bignumber_js_1.BigNumber(0));
         await this.sequencer.addPoolLiquidity(parameter_json_1.default.LP_REINVEST_SYMBOL_A, parameter_json_1.default.LP_REINVEST_SYMBOL_B, TokenABalance, new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_A_ADD_LM_THRESHOLD)), new bignumber_js_1.BigNumber(Number(parameter_json_1.default.LP_REINVEST_SYMBOL_B_ADD_LM_THRESHOLD)), text_json_1.default.ADD_LIQUIDITY + ' ' + parameter_json_1.default.LP_REINVEST_SYMBOL_A + '-' + parameter_json_1.default.LP_REINVEST_SYMBOL_B);
-        await Helper.messagingSpacer(2000, "----------------------------------------");
+        await Helper.taskSpacer(2000, "--------------------------------------------------------------");
         console.log('<<< task finished >>>');
         //    }
         //    let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
