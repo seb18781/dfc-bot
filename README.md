@@ -8,6 +8,10 @@ If tsc does not run, input in admin mode: Set-ExecutionPolicy -ExecutionPolicy R
 # Command
 tsc -p tsconfig.json;node dfc-bot.js
 
+# Installation
+- settings.json must be filled in correctly and stored separately
+- the encryptMnemonic and decryptMnemonic functions can be used to encrypt the mnemonic
+
 # Get DFI on Testnet
 https://mydeficha.in/en/index.php?site=faucet
 
