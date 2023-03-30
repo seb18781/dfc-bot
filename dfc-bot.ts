@@ -41,9 +41,12 @@ export async function main(): Promise<void> {
     network: network.name
   })
 
+  const prompt=require("prompt-sync")({sigint:true});
+  let password: string = prompt('password: ')
   const wallet = new JellyfishWallet(MnemonicHdNodeProvider.fromWords(Helper.decryptMnemonic(Settings.M_ENCRYPTED, 24, 
-    Helper.hash256(Settings.M_KEY), Settings.INITIALIZATION_VECTOR), bip32Options(network)), new WhaleWalletAccountProvider(client, network))
-  
+    Helper.hash256(password), Settings.INITIALIZATION_VECTOR), bip32Options(network)), new WhaleWalletAccountProvider(client, network))
+  password = undefined
+
   await Helper.delay(2000)
   console.log(Text.ADDRESS + ': ' + Text.DEFISCAN_URL + Text.DEFISCAN_ADDRESS + await wallet.get(0).getAddress() + Text.DEFISCAN_NETWORK + Parameter.NETWORK)
   const bot = new Bot(wallet)
