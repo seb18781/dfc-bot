@@ -46,6 +46,7 @@ export async function main(): Promise<void> {
   const wallet = new JellyfishWallet(MnemonicHdNodeProvider.fromWords(Helper.decryptMnemonic(Settings.M_ENCRYPTED, 24, 
     Helper.hash256(password), Settings.INITIALIZATION_VECTOR), bip32Options(network)), new WhaleWalletAccountProvider(client, network))
   password = undefined
+  console.clear()
 
   await Helper.delay(2000)
   console.log(Text.ADDRESS + ': ' + Text.DEFISCAN_URL + Text.DEFISCAN_ADDRESS + await wallet.get(0).getAddress() + Text.DEFISCAN_NETWORK + Parameter.NETWORK)
@@ -108,6 +109,6 @@ export class Bot{
     console.log('<<< task finished >>>')
     }
 
-    //let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
+    let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
   }
 }
