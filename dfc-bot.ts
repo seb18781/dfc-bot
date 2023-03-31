@@ -109,6 +109,6 @@ export class Bot{
     console.log('<<< task finished >>>')
     }
 
-    let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 600000)
+    let intervalID: NodeJS.Timeout = setInterval(() => {task()}, 60 * 60000)
   }
 }
