@@ -1,6 +1,10 @@
 # dfc-bot
 Example program for automation methods on the Defichain
 
+1. Check the UTXO balance and, if necessary, transfer DFI from the account to UTXO
+2. Collect crypto dust and exchange it for a previously defined token
+3. Reinvest in Liquidity Mining
+
 # Installation of Typescript
 For the latest stable version: npm install -g typescript
 If tsc does not run, input in admin mode: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
