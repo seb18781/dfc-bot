@@ -1,10 +1,12 @@
 {
   "dependencies": {
-    "@defichain/jellyfish-network": "^3.30.0",
+    "@defichain/jellyfish-network": "^3.30.1",
+    "@defichain/jellyfish-transaction": "^3.30.1",
+    "@defichain/jellyfish-wallet": "^3.30.1",
     "@defichain/jellyfish-wallet-classic": "^3.30.0",
-    "@defichain/jellyfish-wallet-mnemonic": "^3.30.0",
-    "@defichain/whale-api-client": "^3.30.0",
-    "@defichain/whale-api-wallet": "^3.30.0",
+    "@defichain/jellyfish-wallet-mnemonic": "^3.30.1",
+    "@defichain/whale-api-client": "^3.30.1",
+    "@defichain/whale-api-wallet": "^3.30.1",
     "big-number": "^2.0.0",
     "prompt-sync": "^4.2.0",
     "telegraf": "github:telegraf/telegraf"
